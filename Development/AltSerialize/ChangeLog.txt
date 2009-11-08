@@ -1,0 +1,7 @@
+1.1.1.0:
+- Fixed and optimized Dynamic Serialization
+
+1.1.0.0:
+- Improved serialization speed
+- Added support for ISerializable interface.
+- Added support for Mono.
