@@ -1,3 +1,6 @@
+1.1.2.0
+- Added fix on Dictionary serialization - Mikael Svenson
+
 1.1.1.0:
 - Fixed and optimized Dynamic Serialization
 
