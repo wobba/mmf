@@ -183,12 +183,13 @@ namespace mAdcOW.Serializer
     public class PrimitiveSerializerUint : ISerializeDeserialize<uint>
     {
         #region ISerializeDeserialize<uint> Members
-
+        [CLSCompliantAttribute(false)]
         public byte[] ObjectToBytes(uint data)
         {
             return BitConverter.GetBytes(data);
         }
 
+        [CLSCompliantAttribute(false)]
         public uint BytesToObject(byte[] bytes)
         {
             return BitConverter.ToUInt32(bytes, 0);
@@ -206,11 +207,13 @@ namespace mAdcOW.Serializer
     {
         #region ISerializeDeserialize<ulong> Members
 
+        [CLSCompliantAttribute(false)]
         public byte[] ObjectToBytes(ulong data)
         {
             return BitConverter.GetBytes(data);
         }
 
+        [CLSCompliantAttribute(false)]
         public ulong BytesToObject(byte[] bytes)
         {
             return BitConverter.ToUInt64(bytes, 0);
@@ -228,11 +231,13 @@ namespace mAdcOW.Serializer
     {
         #region ISerializeDeserialize<ushort> Members
 
+        [CLSCompliantAttribute(false)]
         public byte[] ObjectToBytes(ushort data)
         {
             return BitConverter.GetBytes(data);
         }
 
+        [CLSCompliantAttribute(false)]
         public ushort BytesToObject(byte[] bytes)
         {
             return BitConverter.ToUInt16(bytes, 0);

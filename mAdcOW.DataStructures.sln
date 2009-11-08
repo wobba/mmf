@@ -4,10 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Winterdom.IO.FileMap", "Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj", "{15DDC900-49FE-4212-9ED1-48F626D1FB86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EACFCBD7-D400-4055-8A1A-F53A2C66305D}"
-	ProjectSection(SolutionItems) = preProject
-		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
-		mAdcOW.DataStructures1.vsmdi = mAdcOW.DataStructures1.vsmdi
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltSerialize", "AltSerialize\AltSerialize.csproj", "{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}"
 EndProject
@@ -47,9 +43,6 @@ Global
 		SccProjectTopLevelParentUniqueName6 = mAdcOW.DataStructures.sln
 		SccProjectName6 = Tests/mAdcOW.DataStructures.Test
 		SccLocalPath6 = Tests\\mAdcOW.DataStructures.Test
-	EndGlobalSection
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = mAdcOW.DataStructures1.vsmdi
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
