@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		mAdcOW.DataStructures1.vsmdi = mAdcOW.DataStructures1.vsmdi
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication1", "..\..\prototypes\unsafe\ConsoleApplication1\ConsoleApplication1.csproj", "{D3F9F716-E90E-469C-8A42-6A15F04E1EA1}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltSerialize", "AltSerialize\AltSerialize.csproj", "{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer", "mAdcOW.Serializer\mAdcOW.Serializer.csproj", "{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}"
@@ -24,6 +22,32 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.DataStructures.Test", "Tests\mAdcOW.DataStructures.Test\mAdcOW.DataStructures.Test.csproj", "{E4C64F7D-BC72-4819-BB14-1FF410146330}"
 EndProject
 Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 7
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs03.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Winterdom.IO.FileMap\\Winterdom.IO.FileMap.csproj
+		SccProjectName1 = Winterdom.IO.FileMap
+		SccLocalPath1 = Winterdom.IO.FileMap
+		SccProjectUniqueName2 = AltSerialize\\AltSerialize.csproj
+		SccProjectName2 = AltSerialize
+		SccLocalPath2 = AltSerialize
+		SccProjectUniqueName3 = mAdcOW.Serializer\\mAdcOW.Serializer.csproj
+		SccProjectName3 = mAdcOW.Serializer
+		SccLocalPath3 = mAdcOW.Serializer
+		SccProjectUniqueName4 = mAdcOW.DataStructures\\mAdcOW.DataStructures.csproj
+		SccProjectName4 = mAdcOW.DataStructures
+		SccLocalPath4 = mAdcOW.DataStructures
+		SccProjectUniqueName5 = Tests\\mAdcOW.Serializer.Test\\mAdcOW.Serializer.Test.csproj
+		SccProjectTopLevelParentUniqueName5 = mAdcOW.DataStructures.sln
+		SccProjectName5 = Tests/mAdcOW.Serializer.Test
+		SccLocalPath5 = Tests\\mAdcOW.Serializer.Test
+		SccProjectUniqueName6 = Tests\\mAdcOW.DataStructures.Test\\mAdcOW.DataStructures.Test.csproj
+		SccProjectTopLevelParentUniqueName6 = mAdcOW.DataStructures.sln
+		SccProjectName6 = Tests/mAdcOW.DataStructures.Test
+		SccLocalPath6 = Tests\\mAdcOW.DataStructures.Test
+	EndGlobalSection
 	GlobalSection(TestCaseManagementSettings) = postSolution
 		CategoryFile = mAdcOW.DataStructures1.vsmdi
 	EndGlobalSection
@@ -36,10 +60,6 @@ Global
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D3F9F716-E90E-469C-8A42-6A15F04E1EA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3F9F716-E90E-469C-8A42-6A15F04E1EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3F9F716-E90E-469C-8A42-6A15F04E1EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3F9F716-E90E-469C-8A42-6A15F04E1EA1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
