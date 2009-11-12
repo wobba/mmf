@@ -1,29 +1,23 @@
-#region
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using mAdcOW.Serializer;
 
-#endregion
-
 namespace mAdcOW.DataStructures
 {
-    public class List<TValue> : Array<TValue>, IList<TValue>
-        where TValue : struct
+    public class List<T> : Array<T>, IList<T>
+        where T : struct
     {
-        private readonly ReaderWriterLockSlim _valueLock = new ReaderWriterLockSlim();
-
         /// <summary>
         /// Create a new memory mapped List on disk
         /// </summary>
         /// <param name="capacity">The initial capacity of the list to allocate on disk</param>
         /// <param name="path">The directory where the memory mapped file is to be stored</param>
         public List(long capacity, string path)
-            : base(capacity, path, false, new Factory<TValue>().GetSerializer(), new ViewManager())
+            : base(capacity, path, false, new Factory<T>().GetSerializer(), new ViewManager())
         {
-            _valueLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+            ValueLock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         }
 
         public override long Length
@@ -44,12 +38,25 @@ namespace mAdcOW.DataStructures
         /// <param name="item">The object to add to the <see cref="T:System.Collections.Generic.ICollection`1"/>.
         ///                 </param><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1"/> is read-only.
         ///                 </exception>
-        public void Add(TValue item)
+        public void Add(T item)
         {
-            AutoGrow = true;
-            base[Count] = item;
-            AutoGrow = false;
-            Count++;
+            ValueLock.EnterWriteLock();
+            try
+            {
+                AutoGrow = true;
+                base[Count] = item;
+                AutoGrow = false;
+                Count++;
+            }
+            finally
+            {
+                ValueLock.ExitWriteLock();
+            }
+        }
+
+        public void AddRange(IEnumerable<T> collection)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -59,7 +66,15 @@ namespace mAdcOW.DataStructures
         ///                 </exception>
         public void Clear()
         {
-            Count = 0;
+            ValueLock.EnterWriteLock();
+            try
+            {
+                Count = 0;
+            }
+            finally
+            {
+                ValueLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -70,9 +85,9 @@ namespace mAdcOW.DataStructures
         /// </returns>
         /// <param name="item">The object to locate in the <see cref="T:System.Collections.Generic.ICollection`1"/>.
         ///                 </param>
-        public bool Contains(TValue item)
+        public bool Contains(T item)
         {
-            _valueLock.EnterReadLock();
+            ValueLock.EnterReadLock();
             try
             {
                 for (int i = 0; i < Count; i++)
@@ -85,7 +100,7 @@ namespace mAdcOW.DataStructures
             }
             finally
             {
-                _valueLock.EnterReadLock();
+                ValueLock.EnterReadLock();
             }
             return false;
         }
@@ -105,7 +120,7 @@ namespace mAdcOW.DataStructures
         ///                     -or-
         ///                     Type cannot be cast automatically to the type of the destination <paramref name="array"/>.
         ///                 </exception>
-        public void CopyTo(TValue[] array, int arrayIndex)
+        public void CopyTo(T[] array, int arrayIndex)
         {
             if (array == null)
             {
@@ -115,7 +130,7 @@ namespace mAdcOW.DataStructures
             {
                 throw new ArgumentOutOfRangeException("arrayIndex", "index < 0");
             }
-            _valueLock.EnterReadLock();
+            ValueLock.EnterReadLock();
             try
             {
                 if (Count > (array.Length - arrayIndex))
@@ -126,16 +141,13 @@ namespace mAdcOW.DataStructures
             }
             finally
             {
-                _valueLock.ExitReadLock();
+                ValueLock.ExitReadLock();
             }
         }
 
-        private void CopyElementsToArray(TValue[] destArray, int destStartIndex)
+        public void CopyTo(T[] array)
         {
-            for (int i = 0; i < Count; i++)
-            {
-                destArray[destStartIndex + i] = this[i];
-            }
+            this.CopyTo(array, 0);
         }
 
         /// <summary>
@@ -147,7 +159,7 @@ namespace mAdcOW.DataStructures
         /// <param name="item">The object to remove from the <see cref="T:System.Collections.Generic.ICollection`1"/>.
         ///                 </param><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1"/> is read-only.
         ///                 </exception>
-        public bool Remove(TValue item)
+        public bool Remove(T item)
         {
             int index = IndexOf(item);
             if (index == -1)
@@ -185,18 +197,26 @@ namespace mAdcOW.DataStructures
         /// </returns>
         /// <param name="item">The object to locate in the <see cref="T:System.Collections.Generic.IList`1"/>.
         ///                 </param>
-        public int IndexOf(TValue item)
+        public int IndexOf(T item)
         {
-            int index;
-            for (index = 0; index < Count; index++)
+            ValueLock.EnterReadLock();
+            try
             {
-                if (!this[index].Equals(item))
+                int index;
+                for (index = 0; index < Count; index++)
                 {
-                    continue;
+                    if (!this[index].Equals(item))
+                    {
+                        continue;
+                    }
+                    return index;
                 }
-                return index;
+                return -1;
             }
-            return -1;
+            finally
+            {
+                ValueLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -207,18 +227,27 @@ namespace mAdcOW.DataStructures
         ///                 </param><exception cref="T:System.ArgumentOutOfRangeException"><paramref name="index"/> is not a valid index in the <see cref="T:System.Collections.Generic.IList`1"/>.
         ///                 </exception><exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.IList`1"/> is read-only.
         ///                 </exception>
-        public void Insert(int index, TValue item)
+        public void Insert(int index, T item)
         {
-            if (index < 0 || index >= Count)
+            ValueLock.EnterWriteLock();
+            try
             {
-                throw new ArgumentOutOfRangeException("index", "invalid index");
+                if (index < 0 || index >= Count)
+                {
+                    throw new ArgumentOutOfRangeException("index", "invalid index");
+                }
+
+                Add(new T()); // make room for one more
+                for (int i = Count - 1; i > index; i--)
+                {
+                    this[i] = this[i - 1];
+                }
+                this[index] = item;
             }
-            Add(new TValue()); // make room for one more
-            for (int i = Count - 1; i > index; i--)
+            finally
             {
-                this[i] = this[i - 1];
+                ValueLock.ExitWriteLock();
             }
-            this[index] = item;
         }
 
         /// <summary>
@@ -230,35 +259,45 @@ namespace mAdcOW.DataStructures
         ///                 </exception>
         public void RemoveAt(int index)
         {
-            if ((index + 1) == Count)
+            ValueLock.EnterWriteLock();
+            try
             {
-                Count--;
-                return;
-            }
+                if ((index + 1) == Count)
+                {
+                    Count--;
+                    return;
+                }
 
-            for (int i = index; i < Count - 1; i++)
-            {
-                this[i] = this[i + 1];
+                for (int i = index; i < Count - 1; i++)
+                {
+                    this[i] = this[i + 1];
+                }
+                Count--;
             }
-            Count--;
+            finally
+            {
+
+                ValueLock.ExitWriteLock();
+            }
         }
 
-        public TValue this[int index]
+        public T this[int index]
         {
             get
             {
-                if (index >= Count || index < 0)
-                {
-                    throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
-                }
+                ValueLock.EnterReadLock();
                 try
                 {
-                    _valueLock.EnterReadLock();
-                    return ValueSerializer.BytesToObject(Read(index));
+                    if (index >= Count || index < 0)
+                    {
+                        string msg = string.Format("Tried to access item outside the array boundaries. {0}/{1}", index, Count);
+                        throw new ArgumentOutOfRangeException(msg);
+                    }
+                    return base[index];
                 }
                 finally
                 {
-                    _valueLock.ExitReadLock();
+                    ValueLock.ExitReadLock();
                 }
             }
             set
@@ -269,26 +308,28 @@ namespace mAdcOW.DataStructures
                 }
                 try
                 {
-                    _valueLock.EnterWriteLock();
+                    ValueLock.EnterWriteLock();
                     if (index >= Count)
                     {
-                        if (AutoGrow)
-                        {
-                            ViewManager.Grow(index);
-                        }
-                        else
-                        {
-                            throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
-                        }
+                        throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
                     }
-                    Write(ValueSerializer.ObjectToBytes(value), index);
+                    base[index] = value;
                 }
                 finally
                 {
-                    _valueLock.ExitWriteLock();
+                    ValueLock.ExitWriteLock();
                 }
             }
         }
+
         #endregion
+
+        private void CopyElementsToArray(T[] destArray, int destStartIndex)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                destArray[destStartIndex + i] = this[i];
+            }
+        }
     }
 }

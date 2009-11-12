@@ -1,29 +1,4 @@
-﻿//
-//
-// Array.cs
-//    
-//    Implementation of a generic valuetype array using Win32 Memory Mapped
-//    Files for storage.
-//
-// COPYRIGHT (C) 2009, Mikael Svenson (miksvenson@gmail.com)
-//    Second implementation
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -50,9 +25,9 @@ namespace mAdcOW.DataStructures
     public class Array<T> : IEnumerable<T>, IDisposable
         where T : struct
     {
-        #region Private fields
+        #region Private/Protected
         private int _dataSize;
-        private readonly ReaderWriterLockSlim _valueLock = new ReaderWriterLockSlim();
+        protected ReaderWriterLockSlim ValueLock = new ReaderWriterLockSlim();
         protected ISerializeDeserialize<T> ValueSerializer;
         protected readonly IViewManager ViewManager;
         #endregion
@@ -109,7 +84,6 @@ namespace mAdcOW.DataStructures
 
         #endregion
 
-        #region Constructor
         /// <summary>
         /// Create a new memory mapped array on disk
         /// </summary>
@@ -144,17 +118,16 @@ namespace mAdcOW.DataStructures
             ViewManager.Initialize(fileName, capacity, _dataSize);
         }
 
-        private void InitWorkerBuffers()
-        {
-            _dataSize = Marshal.SizeOf(typeof(T));
-        }
-
         ~Array()
         {
             Dispose();
         }
 
-        #endregion
+        private void InitWorkerBuffers()
+        {
+            _dataSize = Marshal.SizeOf(typeof(T));
+        }
+        
 
         internal void Write(byte[] buffer, long index)
         {
@@ -246,19 +219,19 @@ namespace mAdcOW.DataStructures
         {
             get
             {
+
+                ValueLock.EnterReadLock();
                 if (index >= Length || index < 0)
                 {
                     throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
                 }
-
-                _valueLock.EnterReadLock();
                 try
                 {
                     return ValueSerializer.BytesToObject(Read(index));
                 }
                 finally
                 {
-                    _valueLock.ExitReadLock();
+                    ValueLock.ExitReadLock();
                 }
             }
             set
@@ -267,7 +240,7 @@ namespace mAdcOW.DataStructures
                 {
                     throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
                 }
-                _valueLock.EnterWriteLock();
+                ValueLock.EnterWriteLock();
                 try
                 {
                     if (index >= Capacity)
@@ -285,7 +258,7 @@ namespace mAdcOW.DataStructures
                 }
                 finally
                 {
-                    _valueLock.ExitWriteLock();
+                    ValueLock.ExitWriteLock();
                 }
             }
         }
@@ -294,7 +267,7 @@ namespace mAdcOW.DataStructures
 
         public IEnumerator<T> GetEnumerator()
         {
-            _valueLock.EnterReadLock();
+            ValueLock.EnterReadLock();
             try
             {
                 Position = 0;
@@ -305,7 +278,7 @@ namespace mAdcOW.DataStructures
             }
             finally
             {
-                _valueLock.ExitReadLock();
+                ValueLock.ExitReadLock();
             }
         }
 
