@@ -5,6 +5,11 @@ namespace mAdcOW.DataStructures
     public interface IViewManager
     {
         /// <summary>
+        /// Number of items in the file
+        /// </summary>
+        long Length { get; }
+
+        /// <summary>
         /// Get a working view for the current thread
         /// </summary>
         /// <param name="threadId"></param>
@@ -37,10 +42,5 @@ namespace mAdcOW.DataStructures
         /// Remove the backing file
         /// </summary>
         void CleanUp();
-
-        /// <summary>
-        /// Number of items in the file
-        /// </summary>
-        long Length { get; }
     }
 }

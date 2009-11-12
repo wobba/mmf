@@ -11,18 +11,17 @@ namespace mAdcOW.DataStructures
         private static ISerializeDeserialize<TKey> _keySerializer;
         private static ISerializeDeserialize<TValue> _valueSerializer;
 
-        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>> _fileOffsets =
-            new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>();
+        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>
+            _fileOffsets =
+                new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>();
 
         private readonly string _path;
-
-        private long _largestSeenKeyPosition;
-        private long _largestSeenValuePosition;
-        private Array<byte> _keys;
-        private Array<byte> _values;
-
         private int _keyDataSize = -1;
         private int _valueDataSize = -1;
+        private Array<byte> _keys;
+        private Array<byte> _values;
+        private long _largestSeenKeyPosition;
+        private long _largestSeenValuePosition;
 
         public DictionaryPersist(string path)
         {
@@ -36,28 +35,6 @@ namespace mAdcOW.DataStructures
             _path = path;
             _keys = new Array<byte>(1000, path, true);
             _values = new Array<byte>(1000, path, true);
-        }
-
-        ~DictionaryPersist()
-        {
-            if (_keys != null)
-                _keys.Dispose();
-            if (_values != null)
-                _values.Dispose();
-        }
-
-        private void FindKeyValueSize()
-        {
-            try
-            {
-                _keyDataSize = Marshal.SizeOf(typeof(TKey));
-                _valueDataSize = Marshal.SizeOf(typeof(TValue));
-            }
-            catch (Exception)
-            {
-                _keyDataSize = -1;
-                _valueDataSize = -1;
-            }
         }
 
         #region IDictionaryPersist<TKey,TValue> Members
@@ -114,7 +91,8 @@ namespace mAdcOW.DataStructures
             {
                 if (!_fileOffsets.TryGetValue(key.GetHashCode(), out keyFilePositions))
                 {
-                    _fileOffsets[key.GetHashCode()] = keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>();    
+                    _fileOffsets[key.GetHashCode()] =
+                        keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>();
                 }
             }
             Persist(key, value, keyFilePositions);
@@ -128,7 +106,7 @@ namespace mAdcOW.DataStructures
                                                  keyPositions.RemoveAt(index);
                                                  return default(TValue);
                                              }, key);
-            if(removed)
+            if (removed)
             {
                 Count--;
             }
@@ -144,14 +122,10 @@ namespace mAdcOW.DataStructures
             return result;
         }
 
-        public bool ByteCompare(TKey key, TKey existing)
-        {
-            return ByteArrayCompare.UnSafeEquals(_keySerializer.ObjectToBytes(key), _keySerializer.ObjectToBytes(existing));
-        }
-
         public bool ByteCompare(TValue value, TValue existing)
         {
-            return ByteArrayCompare.UnSafeEquals(_valueSerializer.ObjectToBytes(value), _valueSerializer.ObjectToBytes(existing));
+            return ByteArrayCompare.UnSafeEquals(_valueSerializer.ObjectToBytes(value),
+                                                 _valueSerializer.ObjectToBytes(existing));
         }
 
         public ICollection<TKey> AllKeys()
@@ -171,7 +145,8 @@ namespace mAdcOW.DataStructures
 
         public ICollection<TValue> AllValues()
         {
-            System.Collections.Generic.List<TValue> values = new System.Collections.Generic.List<TValue>(_fileOffsets.Count);
+            System.Collections.Generic.List<TValue> values =
+                new System.Collections.Generic.List<TValue>(_fileOffsets.Count);
 
             foreach (System.Collections.Generic.List<KeyValueFileOffset> offsets in _fileOffsets.Values)
             {
@@ -196,6 +171,34 @@ namespace mAdcOW.DataStructures
 
         #endregion
 
+        ~DictionaryPersist()
+        {
+            if (_keys != null)
+                _keys.Dispose();
+            if (_values != null)
+                _values.Dispose();
+        }
+
+        private void FindKeyValueSize()
+        {
+            try
+            {
+                _keyDataSize = Marshal.SizeOf(typeof(TKey));
+                _valueDataSize = Marshal.SizeOf(typeof(TValue));
+            }
+            catch (Exception)
+            {
+                _keyDataSize = -1;
+                _valueDataSize = -1;
+            }
+        }
+
+        public bool ByteCompare(TKey key, TKey existing)
+        {
+            return ByteArrayCompare.UnSafeEquals(_keySerializer.ObjectToBytes(key),
+                                                 _keySerializer.ObjectToBytes(existing));
+        }
+
         private void Persist(TKey key, TValue value, IList<KeyValueFileOffset> keyFilePositions)
         {
             KeyValueFileOffset positions = new KeyValueFileOffset
@@ -203,11 +206,11 @@ namespace mAdcOW.DataStructures
                                                    KeyPosition =
                                                        _keyDataSize == -1
                                                            ? _largestSeenKeyPosition
-                                                           : _largestSeenKeyPosition/_keyDataSize,
+                                                           : _largestSeenKeyPosition / _keyDataSize,
                                                    ValuePosition =
                                                        _valueDataSize == -1
                                                            ? _largestSeenValuePosition
-                                                           : _largestSeenValuePosition/_valueDataSize
+                                                           : _largestSeenValuePosition / _valueDataSize
                                                };
 
             keyFilePositions.Add(positions);
@@ -219,11 +222,13 @@ namespace mAdcOW.DataStructures
         {
             for (int i = 0; i < keyFilePositions.Count; i++)
             {
-                _keys.Position = _keyDataSize == -1 ? keyFilePositions[i].KeyPosition : keyFilePositions[i].KeyPosition * _keyDataSize;
+                _keys.Position = _keyDataSize == -1
+                                     ? keyFilePositions[i].KeyPosition
+                                     : keyFilePositions[i].KeyPosition * _keyDataSize;
                 int length = _keyDataSize == -1 ? BitConverter.ToInt32(_keys.MultiRead(4), 0) : _keyDataSize;
                 TKey dictionaryKey = _keySerializer.BytesToObject(_keys.MultiRead(length));
                 //if (dictionaryKey.Equals(key))
-                if (ByteCompare(dictionaryKey, key))                
+                if (ByteCompare(dictionaryKey, key))
                 {
                     return i;
                 }
