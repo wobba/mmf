@@ -62,11 +62,11 @@ namespace DataStructuresTest
         [TestMethod]
         public void When_accessing_an_index_outside_bounds_an_exception_is_thrown()
         {
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { _testList[-1] = 42; });
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { int a = _testList[-1]; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { _testList[-1] = 42; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { int a = _testList[-1]; });
 
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { _testList[10] = 42; });
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { int a = _testList[10]; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { _testList[10] = 42; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { int a = _testList[10]; });
         }
 
         [TestMethod]
@@ -90,8 +90,8 @@ namespace DataStructuresTest
             _testList.Clear();
             Assert.AreEqual(0, _testList.Count);
 
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { _testList[0] = 42; });
-            MyAssert.ThrowsException<IndexOutOfRangeException>(() => { int a = _testList[0]; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { _testList[0] = 42; });
+            MyAssert.ThrowsException<ArgumentOutOfRangeException>(() => { int a = _testList[0]; });
         }
 
         [TestMethod]
