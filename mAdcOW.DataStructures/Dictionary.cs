@@ -1,10 +1,7 @@
-#region
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
-#endregion
+using System.Threading;
 
 namespace mAdcOW.DataStructures
 {
@@ -16,9 +13,8 @@ namespace mAdcOW.DataStructures
     /// <typeparam name="TValue"></typeparam>
     public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly IDictionaryPersist<TKey, TValue> _persistHandler;
-
-        #region cctors
 
         public Dictionary(IDictionaryPersist<TKey, TValue> persistHandler)
         {
@@ -27,10 +23,8 @@ namespace mAdcOW.DataStructures
 
         public Dictionary(string path)
             : this(new DictionaryPersist<TKey, TValue>(path))
-        {            
+        {
         }
-
-        #endregion
 
         public bool IsStruct { get; set; }
 
@@ -48,7 +42,15 @@ namespace mAdcOW.DataStructures
         ///<exception cref="T:System.ArgumentNullException">key is null.</exception>
         public bool ContainsKey(TKey key)
         {
-            return _persistHandler.ContainsKey(key);
+            _lock.EnterReadLock();
+            try
+            {
+                return _persistHandler.ContainsKey(key);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
 
@@ -63,7 +65,15 @@ namespace mAdcOW.DataStructures
         ///<exception cref="T:System.ArgumentNullException">key is null.</exception>
         public void Add(TKey key, TValue value)
         {
-            _persistHandler.Add(key, value);
+            _lock.EnterWriteLock();
+            try
+            {
+                _persistHandler.Add(key, value);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         ///<summary>
@@ -79,12 +89,28 @@ namespace mAdcOW.DataStructures
         ///<exception cref="T:System.ArgumentNullException">key is null.</exception>
         public bool Remove(TKey key)
         {
-            return _persistHandler.Remove(key);
+            _lock.EnterWriteLock();
+            try
+            {
+                return _persistHandler.Remove(key);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            return _persistHandler.TryGetValue(key, out value);
+            _lock.EnterReadLock();
+            try
+            {
+                return _persistHandler.TryGetValue(key, out value);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         ///<summary>
@@ -112,17 +138,41 @@ namespace mAdcOW.DataStructures
             }
             set
             {
-                TValue existing;
-                if (TryGetValue(key, out existing))
+                _lock.EnterUpgradeableReadLock();
+                try
                 {
-                    if (!_persistHandler.ByteCompare(value, existing))
+                    TValue existing;
+                    if (TryGetValue(key, out existing))
                     {
-                        UpdateItem(key, value);
+                        if (!_persistHandler.ByteCompare(value, existing))
+                        {
+                            _lock.EnterWriteLock();
+                            try
+                            {
+                                UpdateItem(key, value);
+                            }
+                            finally
+                            {
+                                _lock.ExitWriteLock();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        _lock.EnterWriteLock();
+                        try
+                        {
+                            Add(key, value);
+                        }
+                        finally
+                        {
+                            _lock.ExitWriteLock();
+                        }                        
                     }
                 }
-                else
+                finally
                 {
-                    Add(key, value);
+                    _lock.ExitUpgradeableReadLock();
                 }
             }
         }
@@ -171,7 +221,15 @@ namespace mAdcOW.DataStructures
         ///<exception cref="T:System.NotSupportedException">The <see cref="T:System.Collections.Generic.ICollection`1"></see> is read-only. </exception>
         public void Clear()
         {
-            _persistHandler.Clear();
+            _lock.EnterWriteLock();
+            try
+            {
+                _persistHandler.Clear();
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         ///<summary>
@@ -285,7 +343,7 @@ namespace mAdcOW.DataStructures
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             for (IEnumerator<KeyValuePair<TKey, TValue>> enumerator = _persistHandler.GetEnumerator();
-                 enumerator.MoveNext();)
+                 enumerator.MoveNext(); )
             {
                 yield return enumerator.Current;
             }
@@ -313,8 +371,16 @@ namespace mAdcOW.DataStructures
 
         private void UpdateItem(TKey key, TValue value)
         {
-            Remove(key);
-            Add(key, value);
+            _lock.EnterWriteLock();
+            try
+            {
+                Remove(key);
+                Add(key, value);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
     }
 }
