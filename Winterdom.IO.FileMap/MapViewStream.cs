@@ -9,7 +9,7 @@
 //   Original concept and implementation
 // COPYRIGHT (C) 2006, Steve Simpson (s.simpson64@gmail.com)
 //   Modifications to allow dynamic paging for seek, read, and write methods
-// COPYRIGHT (C) 2008, Mikael Svenson (mikaels@powertech.no)
+// COPYRIGHT (C) 2008, Mikael Svenson (miksvenson@gmail.com)
 //   Removed dynamic paging, since it slows things down and 64bit can address as much space
 //   as it feels like. Kept some of the other modifications.
 //   Removed unused constants.
