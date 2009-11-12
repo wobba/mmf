@@ -22,7 +22,7 @@ namespace mAdcOW.Serializer
         {
             try
             {
-                _dataSize = Marshal.SizeOf(typeof(T));
+                _dataSize = Marshal.SizeOf(typeof (T));
                 _unmanagedBufferPtr = Marshal.AllocHGlobal(_dataSize);
                 _byteBuffer = new byte[_dataSize];
                 _canSerialize = true;
@@ -37,7 +37,7 @@ namespace mAdcOW.Serializer
 
         public void Dispose()
         {
-            Marshal.DestroyStructure(_unmanagedBufferPtr, typeof(T));
+            Marshal.DestroyStructure(_unmanagedBufferPtr, typeof (T));
             Marshal.FreeHGlobal(_unmanagedBufferPtr);
         }
 
@@ -56,8 +56,8 @@ namespace mAdcOW.Serializer
         public T BytesToObject(byte[] bytes)
         {
             Marshal.Copy(bytes, 0, _unmanagedBufferPtr, _dataSize);
-            object obj = Marshal.PtrToStructure(_unmanagedBufferPtr, typeof(T));
-            return (T)obj;
+            object obj = Marshal.PtrToStructure(_unmanagedBufferPtr, typeof (T));
+            return (T) obj;
         }
 
         public bool CanSerializeType()
