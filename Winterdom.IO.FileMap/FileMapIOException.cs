@@ -48,7 +48,13 @@ namespace Winterdom.IO.FileMap
             get
             {
                 if (Win32ErrorCode != 0)
+                {
+                    if (Win32ErrorCode == 0x80070008)
+                    {
+                        return base.Message + " Not enough address space available (" + Win32ErrorCode + ")";
+                    }
                     return base.Message + " (" + Win32ErrorCode + ")";
+                }
 
                 return base.Message;
             }
