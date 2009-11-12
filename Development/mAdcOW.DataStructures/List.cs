@@ -304,14 +304,14 @@ namespace mAdcOW.DataStructures
             {
                 if (index < 0)
                 {
-                    throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
+                    throw new ArgumentOutOfRangeException("Tried to access item outside the array boundaries");
                 }
                 try
                 {
                     ValueLock.EnterWriteLock();
                     if (index >= Count)
                     {
-                        throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
+                        throw new ArgumentOutOfRangeException("Tried to access item outside the array boundaries");
                     }
                     base[index] = value;
                 }
