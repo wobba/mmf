@@ -10,14 +10,15 @@ namespace mAdcOW.Serializer
     internal class ValueTypeCheck
     {
         private readonly Type _type;
+
         public ValueTypeCheck(Type objectType)
         {
-            _type = objectType;            
+            _type = objectType;
         }
 
         internal bool OnlyValueTypes()
         {
-            if( _type.IsPrimitive) return true;
+            if (_type.IsPrimitive) return true;
             return PropertySizesAreDefined() && FieldSizesAreDefined();
         }
 
@@ -38,7 +39,7 @@ namespace mAdcOW.Serializer
             foreach (
                 PropertyInfo propertyInfo in
                     _type.GetProperties(BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.Public |
-                                             BindingFlags.NonPublic))
+                                        BindingFlags.NonPublic))
             {
                 if (propertyInfo.CanRead == false || propertyInfo.CanWrite == false)
                 {
@@ -52,10 +53,10 @@ namespace mAdcOW.Serializer
 
         private bool HasMarshalDefinedSize(MemberInfo info)
         {
-            object[] customAttributes = info.GetCustomAttributes(typeof(MarshalAsAttribute), true);
+            object[] customAttributes = info.GetCustomAttributes(typeof (MarshalAsAttribute), true);
             if (customAttributes.Length == 0) return false;
-            MarshalAsAttribute attribute = (MarshalAsAttribute)customAttributes[0];
-            return attribute.SizeConst > 0;            
+            MarshalAsAttribute attribute = (MarshalAsAttribute) customAttributes[0];
+            return attribute.SizeConst > 0;
         }
     }
 }

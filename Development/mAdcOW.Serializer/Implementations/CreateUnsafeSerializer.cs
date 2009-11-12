@@ -1,14 +1,10 @@
-#region
-
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using mAdcOW.Serializer;
-
-#endregion
+using Microsoft.CSharp;
 
 namespace mAdcOW.Serializer
 {
@@ -18,7 +14,7 @@ namespace mAdcOW.Serializer
     /// <typeparam name="T"></typeparam>
     public class CreateUnsafeSerializer<T>
     {
-        private readonly Type _type = typeof(T);
+        private readonly Type _type = typeof (T);
         private int _addCount;
         private int _ptrSize = 8;
         private string _ptrType = "Int64";
@@ -26,27 +22,27 @@ namespace mAdcOW.Serializer
 
         public ISerializeDeserialize<T> GerSerializer()
         {
-            ValueTypeCheck checker = new ValueTypeCheck(typeof(T));
+            ValueTypeCheck checker = new ValueTypeCheck(typeof (T));
             if (!checker.OnlyValueTypes())
             {
                 return null;
             }
-            _size = Marshal.SizeOf(typeof(T));
+            _size = Marshal.SizeOf(typeof (T));
             CompilerResults res = CompileCode();
             if (res.Errors.Count > 0)
             {
                 throw new SerializerException(res.Errors[0].ErrorText);
             }
-            return (ISerializeDeserialize<T>)res.CompiledAssembly.CreateInstance("UnsafeConverter");
+            return (ISerializeDeserialize<T>) res.CompiledAssembly.CreateInstance("UnsafeConverter");
         }
 
         private CompilerResults CompileCode()
         {
             var providerOptions = new Dictionary<string, string>
-                         {
-                             {"CompilerVersion","v3.5"}
-                         };
-            CodeDomProvider provider = new Microsoft.CSharp.CSharpCodeProvider(providerOptions);
+                                      {
+                                          {"CompilerVersion", "v3.5"}
+                                      };
+            CodeDomProvider provider = new CSharpCodeProvider(providerOptions);
             CompilerParameters compilerParameters = GetCompilerParameters();
             return provider.CompileAssemblyFromSource(compilerParameters, GenerateCode());
         }
@@ -59,7 +55,7 @@ namespace mAdcOW.Serializer
             sb.AppendLine("using System;");
             sb.AppendLine();
 
-            Type interfaceType = typeof(ISerializeDeserialize<T>);
+            Type interfaceType = typeof (ISerializeDeserialize<T>);
 
             sb.AppendFormat("public class UnsafeConverter : {0}.ISerializeDeserialize<{1}>",
                             interfaceType.Namespace,
@@ -133,7 +129,7 @@ namespace mAdcOW.Serializer
             {
                 MovePointers(sb);
                 SetPointerLength(length);
-                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount / _ptrSize);
+                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount/_ptrSize);
                 length -= _ptrSize;
                 _addCount += _ptrSize;
             } while (length > 0);
@@ -141,7 +137,7 @@ namespace mAdcOW.Serializer
 
         private void MovePointers(StringBuilder sb)
         {
-            int modifer = _addCount / _ptrSize;
+            int modifer = _addCount/_ptrSize;
             if (modifer >= _ptrSize)
             {
                 sb.AppendFormat("dest += {0};", _addCount);

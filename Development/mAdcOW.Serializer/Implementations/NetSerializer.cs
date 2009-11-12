@@ -9,9 +9,9 @@ namespace mAdcOW.Serializer
     /// <typeparam name="T"></typeparam>
     public class NetSerializer<T> : ISerializeDeserialize<T>
     {
-        #region ISerializeDeserialize<T> Members
+        private readonly BinaryFormatter _formatter = new BinaryFormatter();
 
-        readonly BinaryFormatter _formatter = new BinaryFormatter();
+        #region ISerializeDeserialize<T> Members
 
         public byte[] ObjectToBytes(T data)
         {
@@ -24,12 +24,12 @@ namespace mAdcOW.Serializer
         public T BytesToObject(byte[] bytes)
         {
             MemoryStream byteStream = new MemoryStream(bytes);
-            return (T)_formatter.UnsafeDeserialize(byteStream, null);
+            return (T) _formatter.UnsafeDeserialize(byteStream, null);
         }
 
         public bool CanSerializeType()
         {
-            return typeof(T).IsSerializable;
+            return typeof (T).IsSerializable;
         }
 
         #endregion

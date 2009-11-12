@@ -7,17 +7,18 @@ namespace mAdcOW.Serializer
 {
     public class Factory<T>
     {
-        private static readonly Dictionary<Type, ISerializeDeserialize<T>> _dictionaryCache = new Dictionary<Type, ISerializeDeserialize<T>>();
+        private static readonly Dictionary<Type, ISerializeDeserialize<T>> _dictionaryCache =
+            new Dictionary<Type, ISerializeDeserialize<T>>();
 
         public ISerializeDeserialize<T> GetSerializer()
         {
             ISerializeDeserialize<T> result;
-            Type objectType = typeof(T);
+            Type objectType = typeof (T);
             if (!_dictionaryCache.TryGetValue(objectType, out result))
             {
                 _dictionaryCache[objectType] = result = PickOptimalSerializer();
             }
-            Trace.WriteLine(string.Format("{0} uses {1}", typeof(T), result.GetType()));
+            Trace.WriteLine(string.Format("{0} uses {1}", typeof (T), result.GetType()));
             return result;
         }
 
@@ -36,18 +37,20 @@ namespace mAdcOW.Serializer
 
         private List<Type> GetListOfGenericSerializers()
         {
-            Type interfaceGenricType = typeof(ISerializeDeserialize<T>);
+            Type interfaceGenricType = typeof (ISerializeDeserialize<T>);
             var serializers = from assembly in AppDomain.CurrentDomain.GetAssemblies()
                               from genericType in assembly.GetTypes()
                               from interfaceType in genericType.GetInterfaces()
-                                  .Where(iType => (iType.Name == interfaceGenricType.Name && genericType.IsGenericTypeDefinition))
+                                  .Where(
+                                  iType =>
+                                  (iType.Name == interfaceGenricType.Name && genericType.IsGenericTypeDefinition))
                               select genericType;
             return serializers.ToList();
         }
 
         private List<Type> GetListOfImplementedSerializers()
         {
-            Type interfaceGenricType = typeof(ISerializeDeserialize<T>);
+            Type interfaceGenricType = typeof (ISerializeDeserialize<T>);
             var serializers = from assembly in AppDomain.CurrentDomain.GetAssemblies()
                               from implementedType in assembly.GetTypes()
                               from interfaceType in implementedType.GetInterfaces()
@@ -75,8 +78,8 @@ namespace mAdcOW.Serializer
 
         private ISerializeDeserialize<T> InstantiateSerializer(Type type)
         {
-            Type instType = type.IsGenericTypeDefinition ? type.MakeGenericType(typeof(T)) : type;
-            return (ISerializeDeserialize<T>)Activator.CreateInstance(instType);
+            Type instType = type.IsGenericTypeDefinition ? type.MakeGenericType(typeof (T)) : type;
+            return (ISerializeDeserialize<T>) Activator.CreateInstance(instType);
         }
 
         private void CompileAndRegisterUnsafeSerializer()
@@ -94,7 +97,7 @@ namespace mAdcOW.Serializer
 
         private int BenchMarkSerializer(ISerializeDeserialize<T> serDeser)
         {
-            T classInstance = (T)Activator.CreateInstance(typeof(T), null);
+            T classInstance = (T) Activator.CreateInstance(typeof (T), null);
             Stopwatch sw = Stopwatch.StartNew();
             int count = 0;
             while (sw.ElapsedMilliseconds < 2000)

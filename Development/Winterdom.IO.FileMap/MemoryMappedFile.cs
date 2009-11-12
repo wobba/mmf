@@ -333,7 +333,6 @@ namespace Winterdom.IO.FileMap
 
             bool isWriteable = (_protection & MapProtection.PageReadWrite) == MapProtection.PageReadWrite;
             return new MapViewStream(this, MaxSize, isWriteable);
-
         }
 
         public void UnMapView(IntPtr mapBaseAddr)
