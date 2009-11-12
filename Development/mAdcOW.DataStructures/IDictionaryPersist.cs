@@ -9,7 +9,7 @@ namespace mAdcOW.DataStructures
         bool ContainsValue(TValue value);
         void Add(TKey key, TValue value);
         bool Remove(TKey key);
-        bool TryGetValue(TKey key, out TValue value);        
+        bool TryGetValue(TKey key, out TValue value);
         bool ByteCompare(TValue value, TValue existing);
         ICollection<TKey> AllKeys();
         ICollection<TValue> AllValues();

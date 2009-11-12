@@ -3,23 +3,30 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Timers;
 using Winterdom.IO.FileMap;
-using Timer = System.Timers.Timer;
+using Timer=System.Timers.Timer;
 
 namespace mAdcOW.DataStructures
 {
-    class ViewManager : IViewManager
+    internal class ViewManager : IViewManager
     {
-        private readonly System.Collections.Generic.Dictionary<int, MapViewStream> _viewThreadPool = new System.Collections.Generic.Dictionary<int, MapViewStream>(10);
-        private readonly System.Collections.Generic.Dictionary<int, DateTime> _lastUsedThread = new System.Collections.Generic.Dictionary<int, DateTime>();
-        private readonly ReaderWriterLockSlim _viewLock = new ReaderWriterLockSlim();
-        private MemoryMappedFile _map;
-        private bool _deleteFile = true;
-        private string _fileName;
-        private long _fileSize;
-        private int _dataSize;
         private const int GrowPercentage = 20;
 
+        private readonly System.Collections.Generic.Dictionary<int, DateTime> _lastUsedThread =
+            new System.Collections.Generic.Dictionary<int, DateTime>();
+
+        private readonly ReaderWriterLockSlim _viewLock = new ReaderWriterLockSlim();
+
+        private readonly System.Collections.Generic.Dictionary<int, MapViewStream> _viewThreadPool =
+            new System.Collections.Generic.Dictionary<int, MapViewStream>(10);
+
+        private int _dataSize;
+        private long _fileSize;
+        private string _fileName;
+        private bool _deleteFile = true;
+        
+        private MemoryMappedFile _map;
         private Timer _pooltimer;
 
         public ViewManager()
@@ -27,10 +34,7 @@ namespace mAdcOW.DataStructures
             InitializeThreadPoolCleanUpTimer();
         }
 
-        ~ViewManager()
-        {
-            Dispose(false);
-        }
+        #region IViewManager Members
 
         /// <summary>
         /// Get a working view for the current thread
@@ -59,17 +63,40 @@ namespace mAdcOW.DataStructures
         public void Initialize(string fileName, long capacity, int dataSize)
         {
             _dataSize = dataSize;
-            _fileSize = capacity * dataSize;
+            _fileSize = capacity*dataSize;
             _fileName = fileName;
             _map = MemoryMappedFile.Create(fileName, MapProtection.PageReadWrite, _fileSize);
         }
 
         public long Length
         {
-            get
-            {
-                return _fileSize / _dataSize;
-            }
+            get { return _fileSize/_dataSize; }
+        }
+
+        public bool EnoughBackingCapacity(long position, long writeLength)
+        {
+            return (position + writeLength) <= _fileSize;
+        }
+
+        /// <summary>
+        /// Grow the array to support more data
+        /// </summary>
+        /// <param name="sizeToGrowFrom">The size to grow from</param>
+        public void Grow(long sizeToGrowFrom)
+        {
+            Grow(sizeToGrowFrom, GrowPercentage);
+        }
+
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
+        #endregion
+
+        ~ViewManager()
+        {
+            Dispose(false);
         }
 
         private Stream AddNewViewToThreadPool(int threadId)
@@ -109,7 +136,7 @@ namespace mAdcOW.DataStructures
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void DisposeAndRemoveUnusedViews(object sender, System.Timers.ElapsedEventArgs e)
+        private void DisposeAndRemoveUnusedViews(object sender, ElapsedEventArgs e)
         {
             _viewLock.EnterWriteLock();
             try
@@ -127,7 +154,8 @@ namespace mAdcOW.DataStructures
 
         private System.Collections.Generic.List<int> FindThreadsToClean(int hours)
         {
-            System.Collections.Generic.List<int> cleanedThreads = new System.Collections.Generic.List<int>(_lastUsedThread.Count);
+            System.Collections.Generic.List<int> cleanedThreads =
+                new System.Collections.Generic.List<int>(_lastUsedThread.Count);
             foreach (KeyValuePair<int, DateTime> pair in _lastUsedThread)
             {
                 if (pair.Value < DateTime.UtcNow.AddHours(hours))
@@ -146,25 +174,6 @@ namespace mAdcOW.DataStructures
                 _viewThreadPool.Remove(threadId);
             }
             _lastUsedThread.Remove(threadId);
-        }
-
-        public bool EnoughBackingCapacity(long position, long writeLength)
-        {
-            return (position + writeLength) <= _fileSize;
-        }
-
-        /// <summary>
-        /// Grow the array to support more data
-        /// </summary>
-        /// <param name="sizeToGrowFrom">The size to grow from</param>
-        public void Grow(long sizeToGrowFrom)
-        {
-            Grow(sizeToGrowFrom, GrowPercentage);
-        }
-
-        public void CleanUp()
-        {
-            Dispose();
         }
 
         /// <summary>
@@ -193,7 +202,7 @@ namespace mAdcOW.DataStructures
         {
             long oldSize = _fileSize;
             long newSize = oldSize + _dataSize;
-            _fileSize = (long)((float)size * _dataSize * ((100F + percentage) / 100F)); //required filesize
+            _fileSize = (long) ((float) size*_dataSize*((100F + percentage)/100F)); //required filesize
             if (_fileSize < newSize)
             {
                 _fileSize = newSize;
@@ -243,7 +252,8 @@ namespace mAdcOW.DataStructures
 
         private void DisposeAllViews()
         {
-            System.Collections.Generic.List<int> cleanedThreads = new System.Collections.Generic.List<int>(_viewThreadPool.Count);
+            System.Collections.Generic.List<int> cleanedThreads =
+                new System.Collections.Generic.List<int>(_viewThreadPool.Count);
             foreach (var threadPoolEntry in _viewThreadPool)
             {
                 cleanedThreads.Add(threadPoolEntry.Key);
