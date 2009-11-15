@@ -200,11 +200,16 @@ namespace mAdcOW.DataStructures
 
         private byte[] FillBufferFromStream(byte[] buffer, Stream stream)
         {
-            int bytesRead = 0;
-            do
+            int totalBytesToRead = buffer.Length;
+            int totalBytesRead = 0;
+            while (totalBytesToRead > 0)
             {
-                bytesRead = stream.Read(buffer, bytesRead, buffer.Length - bytesRead);
-            } while (bytesRead != _dataSize && bytesRead > 0);
+                int bytesRead = stream.Read(buffer, totalBytesRead, totalBytesToRead);
+                if (bytesRead == 0)
+                    break;
+                totalBytesRead += bytesRead;
+                totalBytesToRead -= bytesRead;
+            }
             return buffer;
         }
 
