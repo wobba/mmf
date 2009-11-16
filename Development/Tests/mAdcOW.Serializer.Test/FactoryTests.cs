@@ -152,5 +152,13 @@ namespace mAdcOW.Serializer.Test
 
             Assert.IsTrue(actual is AltSerialize<DataPackage> || actual is WcfDataContractSerializer<DataPackage>);
         }
+
+        [TestMethod]
+        public void When_sending_in_a_string_it_should_return_a_serializer()
+        {
+            Factory<string> factory = new Factory<string>();
+            var actual = factory.GetSerializer();
+            Assert.IsInstanceOfType(actual, typeof (ISerializeDeserialize<string>));
+        }
     }
 }
