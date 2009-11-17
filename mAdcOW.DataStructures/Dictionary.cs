@@ -26,6 +26,11 @@ namespace mAdcOW.DataStructures
         {
         }
 
+        public Dictionary(string path, int capacity)
+            : this(new DictionaryPersist<TKey, TValue>(path, capacity))
+        {
+        }
+
         public bool IsStruct { get; set; }
 
         #region IDictionary<TKey,TValue> Members
