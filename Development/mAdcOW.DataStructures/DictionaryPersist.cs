@@ -11,9 +11,7 @@ namespace mAdcOW.DataStructures
         private static ISerializeDeserialize<TKey> _keySerializer;
         private static ISerializeDeserialize<TValue> _valueSerializer;
 
-        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>
-            _fileOffsets =
-                new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>();
+        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>> _fileOffsets;
 
         private readonly string _path;
         private int _keyDataSize = -1;
@@ -23,8 +21,9 @@ namespace mAdcOW.DataStructures
         private long _largestSeenKeyPosition;
         private long _largestSeenValuePosition;
 
-        public DictionaryPersist(string path)
+        public DictionaryPersist(string path, int capacity)
         {
+            _fileOffsets = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>(capacity);
             FindKeyValueSize();
 
             Factory<TKey> keyFactory = new Factory<TKey>();
@@ -35,6 +34,11 @@ namespace mAdcOW.DataStructures
             _path = path;
             _keys = new Array<byte>(1000, path, true);
             _values = new Array<byte>(1000, path, true);
+        }
+
+        public DictionaryPersist(string path)
+            : this(path, 1000000)
+        {
         }
 
         #region IDictionaryPersist<TKey,TValue> Members
@@ -92,7 +96,7 @@ namespace mAdcOW.DataStructures
                 if (!_fileOffsets.TryGetValue(key.GetHashCode(), out keyFilePositions))
                 {
                     _fileOffsets[key.GetHashCode()] =
-                        keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>();
+                        keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>(1);
                 }
             }
             Persist(key, value, keyFilePositions);
