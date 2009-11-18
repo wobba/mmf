@@ -90,17 +90,11 @@ namespace mAdcOW.Serializer
         {
             sb.AppendFormat("public unsafe {0} BytesToObject( byte[] bytes )", typeFullName);
             sb.Append("{");
-            sb.AppendFormat("{0} data = new {0}();", typeFullName);
             sb.Append(@"
-                fixed (byte* srcPtr = bytes)
-                {
-            ");
-            sb.Append("byte* src = srcPtr;");
-            sb.Append("byte* dest = (byte*)&data;");
-
-            GenerateMethodBodyCode(sb);
-
-            sb.Append("}return data;}");
+                fixed (byte* srcPtr = &bytes[0])
+                {");
+            sb.AppendFormat("return *({0}*)srcPtr;", typeFullName);
+            sb.Append("}}");
         }
 
         private void ObjectToBytesCode(StringBuilder sb, string typeFullName)
