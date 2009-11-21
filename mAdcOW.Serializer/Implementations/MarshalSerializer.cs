@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace mAdcOW.Serializer
@@ -11,10 +12,12 @@ namespace mAdcOW.Serializer
     {
         #region members
 
-        private readonly byte[] _byteBuffer;
+        private bool _isDisposed = false;
         private readonly bool _canSerialize;
         private readonly int _dataSize;
-        private readonly IntPtr _unmanagedBufferPtr;
+        static List<IntPtr> _unmanagedBufferPtrList = new List<IntPtr>();
+        [ThreadStatic]
+        private static IntPtr _unmanagedBufferPtr;
 
         #endregion
 
@@ -22,9 +25,7 @@ namespace mAdcOW.Serializer
         {
             try
             {
-                _dataSize = Marshal.SizeOf(typeof (T));
-                _unmanagedBufferPtr = Marshal.AllocHGlobal(_dataSize);
-                _byteBuffer = new byte[_dataSize];
+                _dataSize = Marshal.SizeOf(typeof(T));
                 _canSerialize = true;
             }
             catch (Exception)
@@ -33,12 +34,25 @@ namespace mAdcOW.Serializer
             }
         }
 
+        ~MarshalSerializer()
+        {
+            Dispose();
+        }
         #region IDisposable Members
 
         public void Dispose()
         {
-            Marshal.DestroyStructure(_unmanagedBufferPtr, typeof (T));
-            Marshal.FreeHGlobal(_unmanagedBufferPtr);
+            if (_isDisposed) return;
+
+            _isDisposed = true;
+            for (int i = 0; i < _unmanagedBufferPtrList.Count; i++)
+            {
+                if (_unmanagedBufferPtrList[i] == IntPtr.Zero) continue;
+
+                Marshal.DestroyStructure(_unmanagedBufferPtrList[i], typeof (T));
+                Marshal.FreeHGlobal(_unmanagedBufferPtrList[i]);
+                _unmanagedBufferPtrList[i] = IntPtr.Zero;
+            }
         }
 
         #endregion
@@ -47,6 +61,7 @@ namespace mAdcOW.Serializer
 
         public byte[] ObjectToBytes(T data)
         {
+            EnsureBufferIsAvailable();
             Marshal.StructureToPtr(data, _unmanagedBufferPtr, true);
             byte[] buffer = new byte[_dataSize];
             Marshal.Copy(_unmanagedBufferPtr, buffer, 0, _dataSize);
@@ -55,9 +70,19 @@ namespace mAdcOW.Serializer
 
         public T BytesToObject(byte[] bytes)
         {
+            EnsureBufferIsAvailable();
             Marshal.Copy(bytes, 0, _unmanagedBufferPtr, _dataSize);
-            object obj = Marshal.PtrToStructure(_unmanagedBufferPtr, typeof (T));
-            return (T) obj;
+            object obj = Marshal.PtrToStructure(_unmanagedBufferPtr, typeof(T));
+            return (T)obj;
+        }
+
+        private void EnsureBufferIsAvailable()
+        {
+            if (_unmanagedBufferPtr == IntPtr.Zero)
+            {
+                _unmanagedBufferPtr = Marshal.AllocHGlobal(_dataSize);
+                _unmanagedBufferPtrList.Add(_unmanagedBufferPtr);
+            }
         }
 
         public bool CanSerializeType()
