@@ -108,7 +108,7 @@ namespace mAdcOW.Serializer
                 T classInstance = (T)Activator.CreateInstance(typeof(T), args);
                 Stopwatch sw = Stopwatch.StartNew();
                 int count = 0;
-                while (sw.ElapsedMilliseconds < 2000)
+                while (sw.ElapsedMilliseconds < 500)
                 {
                     byte[] bytes = serDeser.ObjectToBytes(classInstance);
                     serDeser.BytesToObject(bytes);
