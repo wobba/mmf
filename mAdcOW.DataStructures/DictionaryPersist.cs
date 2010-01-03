@@ -6,7 +6,7 @@ using mAdcOW.Serializer;
 
 namespace mAdcOW.DataStructures
 {
-    internal class DictionaryPersist<TKey, TValue> : IDictionaryPersist<TKey, TValue>
+    public class DictionaryPersist<TKey, TValue> : IDictionaryPersist<TKey, TValue>
     {
         private static ISerializeDeserialize<TKey> _keySerializer;
         private static ISerializeDeserialize<TValue> _valueSerializer;
@@ -132,35 +132,28 @@ namespace mAdcOW.DataStructures
                                                  _valueSerializer.ObjectToBytes(existing));
         }
 
-        public ICollection<TKey> AllKeys()
+        public IEnumerable<TKey> AllKeys()
         {
-            System.Collections.Generic.List<TKey> keys = new System.Collections.Generic.List<TKey>(_fileOffsets.Count);
-
             foreach (System.Collections.Generic.List<KeyValueFileOffset> offsets in _fileOffsets.Values)
             {
                 foreach (KeyValueFileOffset fileOffset in offsets)
                 {
                     TKey key = ReadDictionaryKey(fileOffset);
-                    keys.Add(key);
+                    yield return key;
                 }
             }
-            return keys;
         }
 
-        public ICollection<TValue> AllValues()
+        public IEnumerable<TValue> AllValues()
         {
-            System.Collections.Generic.List<TValue> values =
-                new System.Collections.Generic.List<TValue>(_fileOffsets.Count);
-
             foreach (System.Collections.Generic.List<KeyValueFileOffset> offsets in _fileOffsets.Values)
             {
                 foreach (KeyValueFileOffset fileOffset in offsets)
                 {
                     TValue value = ReadDictionaryValue(fileOffset);
-                    values.Add(value);
+                    yield return value;
                 }
             }
-            return values;
         }
 
         public void Clear()
@@ -173,14 +166,28 @@ namespace mAdcOW.DataStructures
             Count = 0;
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        public void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                GC.SuppressFinalize(this);
+                if (_keys != null)
+                    _keys.Dispose();
+                if (_values != null)
+                    _values.Dispose();
+            }
+        }
+
         #endregion
 
         ~DictionaryPersist()
         {
-            if (_keys != null)
-                _keys.Dispose();
-            if (_values != null)
-                _values.Dispose();
+            Dispose(false);
         }
 
         private void FindKeyValueSize()
