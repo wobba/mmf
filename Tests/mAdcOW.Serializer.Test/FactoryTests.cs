@@ -163,5 +163,18 @@ namespace mAdcOW.Serializer.Test
             var actual = factory.GetSerializer();
             Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<string>));
         }
+
+        [TestMethod]
+        public void Validate_MarshalSeriazlier()
+        {
+            SimpleStruct data = new SimpleStruct();
+            MarshalSerializer<SimpleStruct> serializer = new MarshalSerializer<SimpleStruct>();
+            var bytes = serializer.ObjectToBytes(data);
+            var result = serializer.BytesToObject(bytes);
+            Assert.AreEqual(data.Num, result.Num);
+            Assert.AreEqual(data.Age, result.Age);
+            Assert.AreEqual(data.False, result.False);
+            Assert.AreEqual(data.La, result.La);
+        }
     }
 }
