@@ -190,7 +190,6 @@ namespace DataStructuresTest
                 t.Join();
             }
             Assert.IsFalse(_error);
-
         }
 
         private static void DoWriteTest3(object dictionary)
