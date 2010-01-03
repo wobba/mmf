@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using mAdcOW.DataStructures.DictionaryBacking;
 
 namespace mAdcOW.DataStructures
 {
@@ -22,13 +23,18 @@ namespace mAdcOW.DataStructures
         }
 
         public Dictionary(string path)
-            : this(new DictionaryPersist<TKey, TValue>(path))
+            : this(new BackingUnknownSize<TKey, TValue>(path, 20000))
         {
         }
 
         public Dictionary(string path, int capacity)
-            : this(new DictionaryPersist<TKey, TValue>(path, capacity))
+            : this(new BackingUnknownSize<TKey, TValue>(path, capacity))
         {
+        }
+
+        ~Dictionary()
+        {
+            _persistHandler.Dispose();
         }
 
         public bool IsStruct { get; set; }
@@ -172,7 +178,7 @@ namespace mAdcOW.DataStructures
                         finally
                         {
                             _lock.ExitWriteLock();
-                        }                        
+                        }
                     }
                 }
                 finally
@@ -192,7 +198,7 @@ namespace mAdcOW.DataStructures
         ///
         public ICollection<TKey> Keys
         {
-            get { return _persistHandler.AllKeys(); }
+            get { return new System.Collections.Generic.List<TKey>(_persistHandler.AllKeys()); }
         }
 
         ///<summary>
@@ -205,7 +211,7 @@ namespace mAdcOW.DataStructures
         ///
         public ICollection<TValue> Values
         {
-            get { return _persistHandler.AllValues(); }
+            get { return new System.Collections.Generic.List<TValue>(_persistHandler.AllValues()); }
         }
 
         ///<summary>
