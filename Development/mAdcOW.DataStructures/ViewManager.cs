@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Timers;
 using Winterdom.IO.FileMap;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 
 namespace mAdcOW.DataStructures
 {
@@ -25,7 +25,7 @@ namespace mAdcOW.DataStructures
         private long _fileSize;
         private string _fileName;
         private bool _deleteFile = true;
-        
+
         private MemoryMappedFile _map;
         private Timer _pooltimer;
 
@@ -63,14 +63,14 @@ namespace mAdcOW.DataStructures
         public void Initialize(string fileName, long capacity, int dataSize)
         {
             _dataSize = dataSize;
-            _fileSize = capacity*dataSize;
+            _fileSize = capacity * dataSize;
             _fileName = fileName;
             _map = MemoryMappedFile.Create(fileName, MapProtection.PageReadWrite, _fileSize);
         }
 
         public long Length
         {
-            get { return _fileSize/_dataSize; }
+            get { return _fileSize / _dataSize; }
         }
 
         public bool EnoughBackingCapacity(long position, long writeLength)
@@ -106,6 +106,10 @@ namespace mAdcOW.DataStructures
             {
                 MapViewStream mvs;
                 _viewThreadPool[threadId] = mvs = _map.MapAsStream();
+
+                Trace.Write(Thread.CurrentThread.ManagedThreadId);
+                Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
+                GC.AddMemoryPressure(mvs.Length);
                 return mvs;
             }
             finally
@@ -170,6 +174,9 @@ namespace mAdcOW.DataStructures
         {
             if (_viewThreadPool.ContainsKey(threadId))
             {
+                Trace.Write(Thread.CurrentThread.ManagedThreadId);
+                Trace.WriteLine("Removing GC memory pressure: " + _viewThreadPool[threadId].Length);
+                GC.RemoveMemoryPressure(_viewThreadPool[threadId].Length);
                 _viewThreadPool[threadId].Close();
                 _viewThreadPool.Remove(threadId);
             }
@@ -202,7 +209,7 @@ namespace mAdcOW.DataStructures
         {
             long oldSize = _fileSize;
             long newSize = oldSize + _dataSize;
-            _fileSize = (long) ((float) size*_dataSize*((100F + percentage)/100F)); //required filesize
+            _fileSize = (long)((float)size * _dataSize * ((100F + percentage) / 100F)); //required filesize
             if (_fileSize < newSize)
             {
                 _fileSize = newSize;
@@ -211,14 +218,14 @@ namespace mAdcOW.DataStructures
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            Dispose(true);            
         }
 
-        protected virtual void Dispose(bool disposing)
+        protected void Dispose(bool disposing)
         {
             if (disposing || _deleteFile)
             {
+                GC.SuppressFinalize(this);
                 DisposeAllViews();
                 CloseMapFile();
             }
@@ -239,7 +246,11 @@ namespace mAdcOW.DataStructures
             {
                 if (_deleteFile)
                 {
-                    if (File.Exists(_fileName)) File.Delete(_fileName);
+                    if (File.Exists(_fileName))
+                    {
+                        Trace.WriteLine("Deleting file: " + _fileName);
+                        File.Delete(_fileName);
+                    }
                 }
             }
             catch (UnauthorizedAccessException e)
@@ -252,8 +263,7 @@ namespace mAdcOW.DataStructures
 
         private void DisposeAllViews()
         {
-            System.Collections.Generic.List<int> cleanedThreads =
-                new System.Collections.Generic.List<int>(_viewThreadPool.Count);
+            System.Collections.Generic.List<int> cleanedThreads = new System.Collections.Generic.List<int>(_viewThreadPool.Count);
             foreach (var threadPoolEntry in _viewThreadPool)
             {
                 cleanedThreads.Add(threadPoolEntry.Key);
