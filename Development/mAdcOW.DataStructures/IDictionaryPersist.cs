@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 
 namespace mAdcOW.DataStructures
 {
-    public interface IDictionaryPersist<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+    public interface IDictionaryPersist<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>, IDisposable
     {
         int Count { get; }
         bool ContainsKey(TKey key);
@@ -11,8 +12,8 @@ namespace mAdcOW.DataStructures
         bool Remove(TKey key);
         bool TryGetValue(TKey key, out TValue value);
         bool ByteCompare(TValue value, TValue existing);
-        ICollection<TKey> AllKeys();
-        ICollection<TValue> AllValues();
+        IEnumerable<TKey> AllKeys();
+        IEnumerable<TValue> AllValues();
         void Clear();
     }
 }
