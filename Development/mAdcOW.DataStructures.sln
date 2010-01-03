@@ -20,9 +20,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer.Test", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.DataStructures.Test", "Tests\mAdcOW.DataStructures.Test\mAdcOW.DataStructures.Test.csproj", "{E4C64F7D-BC72-4819-BB14-1FF410146330}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkConsoleApp", "BenchmarkConsoleApp\BenchmarkConsoleApp.csproj", "{C2DEAC48-F50B-446A-A0F5-6F4FD2BACB1B}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 7
+		SccNumberOfProjects = 8
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs03.codeplex.com/
 		SccLocalPath0 = .
@@ -46,6 +48,9 @@ Global
 		SccProjectTopLevelParentUniqueName6 = mAdcOW.DataStructures.sln
 		SccProjectName6 = Tests/mAdcOW.DataStructures.Test
 		SccLocalPath6 = Tests\\mAdcOW.DataStructures.Test
+		SccProjectUniqueName7 = BenchmarkConsoleApp\\BenchmarkConsoleApp.csproj
+		SccProjectName7 = BenchmarkConsoleApp
+		SccLocalPath7 = BenchmarkConsoleApp
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -76,6 +81,10 @@ Global
 		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2DEAC48-F50B-446A-A0F5-6F4FD2BACB1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2DEAC48-F50B-446A-A0F5-6F4FD2BACB1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2DEAC48-F50B-446A-A0F5-6F4FD2BACB1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2DEAC48-F50B-446A-A0F5-6F4FD2BACB1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
