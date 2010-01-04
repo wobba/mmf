@@ -43,21 +43,13 @@ namespace mAdcOW.DataStructures
         /// <returns></returns>
         public Stream GetView(int threadId)
         {
-            _viewLock.EnterUpgradeableReadLock();
-            try
+            _lastUsedThread[threadId] = DateTime.UtcNow;
+            MapViewStream s;
+            if (_viewThreadPool.TryGetValue(threadId, out s))
             {
-                _lastUsedThread[threadId] = DateTime.UtcNow;
-                MapViewStream s;
-                if (_viewThreadPool.TryGetValue(threadId, out s))
-                {
-                    return s;
-                }
-                return AddNewViewToThreadPool(threadId);
+                return s;
             }
-            finally
-            {
-                _viewLock.ExitUpgradeableReadLock();
-            }
+            return AddNewViewToThreadPool(threadId);
         }
 
         public void Initialize(string fileName, long capacity, int dataSize)
@@ -101,21 +93,13 @@ namespace mAdcOW.DataStructures
 
         private Stream AddNewViewToThreadPool(int threadId)
         {
-            _viewLock.EnterWriteLock();
-            try
-            {
-                MapViewStream mvs;
-                _viewThreadPool[threadId] = mvs = _map.MapAsStream();
+            MapViewStream mvs;
+            _viewThreadPool[threadId] = mvs = _map.MapAsStream();
 
-                Trace.Write(Thread.CurrentThread.ManagedThreadId);
-                Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
-                GC.AddMemoryPressure(mvs.Length);
-                return mvs;
-            }
-            finally
-            {
-                _viewLock.ExitWriteLock();
-            }
+            Trace.Write(Thread.CurrentThread.ManagedThreadId);
+            Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
+            GC.AddMemoryPressure(mvs.Length);
+            return mvs;
         }
 
         private void EnsureBackingFile()
@@ -218,7 +202,7 @@ namespace mAdcOW.DataStructures
 
         public void Dispose()
         {
-            Dispose(true);            
+            Dispose(true);
         }
 
         protected void Dispose(bool disposing)
