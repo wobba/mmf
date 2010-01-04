@@ -14,7 +14,7 @@ namespace mAdcOW.DataStructures
     /// <typeparam name="TValue"></typeparam>
     public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
         private readonly IDictionaryPersist<TKey, TValue> _persistHandler;
 
         public Dictionary(IDictionaryPersist<TKey, TValue> persistHandler)
@@ -149,41 +149,26 @@ namespace mAdcOW.DataStructures
             }
             set
             {
-                _lock.EnterUpgradeableReadLock();
+                _lock.EnterWriteLock();
                 try
                 {
                     TValue existing;
-                    if (TryGetValue(key, out existing))
+                    if (_persistHandler.TryGetValue(key, out existing))
                     {
                         if (!_persistHandler.ByteCompare(value, existing))
                         {
-                            _lock.EnterWriteLock();
-                            try
-                            {
-                                UpdateItem(key, value);
-                            }
-                            finally
-                            {
-                                _lock.ExitWriteLock();
-                            }
+                            _persistHandler.Remove(key);
+                            _persistHandler.Add(key, value);
                         }
                     }
                     else
                     {
-                        _lock.EnterWriteLock();
-                        try
-                        {
-                            Add(key, value);
-                        }
-                        finally
-                        {
-                            _lock.ExitWriteLock();
-                        }
+                        _persistHandler.Add(key, value);
                     }
                 }
                 finally
                 {
-                    _lock.ExitUpgradeableReadLock();
+                    _lock.ExitWriteLock();
                 }
             }
         }
@@ -378,20 +363,6 @@ namespace mAdcOW.DataStructures
         public bool ContainsValue(TValue value)
         {
             return _persistHandler.ContainsValue(value);
-        }
-
-        private void UpdateItem(TKey key, TValue value)
-        {
-            _lock.EnterWriteLock();
-            try
-            {
-                Remove(key);
-                Add(key, value);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
         }
     }
 }

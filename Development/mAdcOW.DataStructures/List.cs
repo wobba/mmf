@@ -100,7 +100,7 @@ namespace mAdcOW.DataStructures
             }
             finally
             {
-                ValueLock.EnterReadLock();
+                ValueLock.ExitReadLock();
             }
             return false;
         }
