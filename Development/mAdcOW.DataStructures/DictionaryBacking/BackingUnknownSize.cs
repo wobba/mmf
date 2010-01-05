@@ -14,12 +14,14 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private readonly int _capacity;
 
         private Array<long> _hashCodeLookup;
-        private Array<byte> _keys;
-        private Array<byte> _values;
+        private ByteArray _keys;
+        private ByteArray _values;
         private int _firstItem = -1;
         private long _largestSeenKeyPosition = 1; // set start position to 1 to simplify logic
         private long _largestSeenValuePosition;
         private string _path;
+        private int _defaultKeySize;
+        private int _defaultValueSize;
 
         public BackingUnknownSize(string path, int capacity)
         {
@@ -31,14 +33,28 @@ namespace mAdcOW.DataStructures.DictionaryBacking
             _keySerializer = keyFactory.GetSerializer();
             _valueSerializer = valueFactory.GetSerializer();
 
-            _hashCodeLookup = new Array<long>(capacity, path, true);
-            _keys = new Array<byte>(capacity * 4, path, true);
-            _values = new Array<byte>(capacity * 4, path, true);
+            SetDefaultKeyValueSize();
+
+            _hashCodeLookup = new Array<long>(_capacity, path, true);
+
+            _keys = new ByteArray(_capacity * _defaultKeySize, path, true);
+            _values = new ByteArray(_capacity * _defaultValueSize, path, true);
         }
+
+        void SetDefaultKeyValueSize()
+        {
+            if( default(TKey) != null )
+                _defaultKeySize = _keySerializer.ObjectToBytes(default(TKey)).Length;
+            if (default(TValue) != null)
+                _defaultValueSize = _valueSerializer.ObjectToBytes(default(TValue)).Length;
+            
+            if (_defaultKeySize == 0) _defaultKeySize = 40;
+            if (_defaultValueSize == 0) _defaultValueSize = 40;
+        }
+
 
         ~BackingUnknownSize()
         {
-            Trace.WriteLine("Calling finalizer on BackingUnknownSize");
             Dispose(false);
         }
 
@@ -110,7 +126,7 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         public bool ContainsValue(TValue value)
         {
             byte[] valueBytes = _valueSerializer.ObjectToBytes(value);
-            
+
             IEnumerator<KeyValuePair<TKey, TValue>> enumerator = GetEnumerator();
             while (enumerator.MoveNext())
             {
@@ -209,14 +225,14 @@ namespace mAdcOW.DataStructures.DictionaryBacking
 
                     if (ByteArrayCompare.Equals(keyBytes, readKeyBytes))
                     {
-                        if(keysWithSameHash == 1)
+                        if (keysWithSameHash == 1)
                         {
                             _hashCodeLookup[pos] = nextKeyFilePos;
                         }
                         else
                         {
                             _keys.Position = updateKeyPos;
-                            _keys.WriteVLong(nextKeyFilePos);                            
+                            _keys.WriteVLong(nextKeyFilePos);
                         }
                         Count--;
                         return true;
@@ -298,8 +314,8 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         public void Clear()
         {
             _hashCodeLookup = new Array<long>(_capacity, _path, true);
-            _keys = new Array<byte>(_capacity * 4, _path, true);
-            _values = new Array<byte>(_capacity * 4, _path, true);
+            _keys = new ByteArray(_capacity * _defaultKeySize, _path, true);
+            _values = new ByteArray(_capacity * _defaultValueSize, _path, true);
             _largestSeenKeyPosition = 1;
             _largestSeenValuePosition = 0;
             Count = 0;

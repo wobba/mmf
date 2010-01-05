@@ -51,6 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByteArray.cs" />
     <Compile Include="ByteArrayCompare.cs" />
     <Compile Include="DictionaryBacking\BackingUnknownSize.cs" />
     <Compile Include="DictionaryBacking\HashHelpers.cs" />

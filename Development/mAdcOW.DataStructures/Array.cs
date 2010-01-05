@@ -150,6 +150,11 @@ namespace mAdcOW.DataStructures
             WriteBufferToStream(buffer);
         }
 
+        internal void Write(byte[] buffer, int bufferLength)
+        {
+            WriteBufferToStream(buffer, bufferLength);
+        }
+
         internal void WriteByte(byte b)
         {
             Stream viewStream = GetThreadStream();
@@ -164,12 +169,17 @@ namespace mAdcOW.DataStructures
 
         private void WriteBufferToStream(byte[] buffer)
         {
+            WriteBufferToStream(buffer, buffer.Length);
+        }
+
+        private void WriteBufferToStream(byte[] buffer, int bufferLength)
+        {
             Stream viewStream = GetThreadStream();
             if (NeedToGrowView(viewStream.Position, buffer.LongLength))
             {
                 viewStream = GrowViewAndGetNewStream(viewStream.Position, buffer.LongLength);
             }
-            viewStream.Write(buffer, 0, buffer.Length);
+            viewStream.Write(buffer, 0, bufferLength);
         }
 
         private void WriteBufferToStream(Stream viewStream, byte b)
@@ -243,65 +253,6 @@ namespace mAdcOW.DataStructures
             Stream s = ViewManager.GetView(threadId);
             return (byte)s.ReadByte();
         }
-
-        /// <summary>Writes an long in a variable-length format.  Writes between one and five
-        /// bytes.  Smaller values take fewer bytes.  Negative numbers are not
-        /// supported.
-        /// </summary>
-        public byte WriteVLong(long value)
-        {
-            byte length = 0;
-            while ((value & ~0x7F) != 0)
-            {
-                WriteByte((byte)((value & 0x7f) | 0x80));
-                value = value >> 7;
-                length++;
-            }
-            WriteByte((byte)value);
-            return ++length;
-        }
-
-        public byte WriteVInt(int value)
-        {
-            byte length = 0;
-            while ((value & ~0x7F) != 0)
-            {
-                WriteByte((byte)((value & 0x7f) | 0x80));
-                value = value >> 7;
-                length++;
-            }
-            WriteByte((byte)value);
-            return ++length;
-        }
-
-        /// <summary>Reads a long stored in variable-length format.  Reads between one and
-        /// nine bytes.  Smaller values take fewer bytes.  Negative numbers are not
-        /// supported. 
-        /// </summary>
-        public long ReadVLong()
-        {
-            byte b = ReadByte();
-            long i = b & 0x7F;
-            for (int shift = 7; (b & 0x80) != 0; shift += 7)
-            {
-                b = ReadByte();
-                i |= (b & 0x7FL) << shift;
-            }
-            return i;
-        }
-
-        public int ReadVInt()
-        {
-            byte b = ReadByte();
-            int i = b & 0x7F;
-            for (int shift = 7; (b & 0x80) != 0; shift += 7)
-            {
-                b = ReadByte();
-                i |= (b & 0x7F) << shift;
-            }
-            return i;
-        }
-
 
         public T this[long index]
         {
