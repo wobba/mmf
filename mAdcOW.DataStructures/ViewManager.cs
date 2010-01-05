@@ -11,7 +11,7 @@ namespace mAdcOW.DataStructures
 {
     internal class ViewManager : IViewManager
     {
-        private const int GrowPercentage = 20;
+        private const int GrowPercentage = 25;
 
         private readonly System.Collections.Generic.Dictionary<int, DateTime> _lastUsedThread =
             new System.Collections.Generic.Dictionary<int, DateTime>();
@@ -43,13 +43,30 @@ namespace mAdcOW.DataStructures
         /// <returns></returns>
         public Stream GetView(int threadId)
         {
-            _lastUsedThread[threadId] = DateTime.UtcNow;
-            MapViewStream s;
-            if (_viewThreadPool.TryGetValue(threadId, out s))
+            _viewLock.EnterReadLock();
+            try
             {
-                return s;
+                _lastUsedThread[threadId] = DateTime.UtcNow;
+                MapViewStream s;
+                if (_viewThreadPool.TryGetValue(threadId, out s))
+                {
+                    return s;
+                }
             }
-            return AddNewViewToThreadPool(threadId);
+            finally
+            {
+                _viewLock.ExitReadLock();
+            }
+
+            _viewLock.EnterWriteLock();
+            try
+            {
+                return AddNewViewToThreadPool(threadId);
+            }
+            finally
+            {
+                _viewLock.ExitWriteLock();
+            }
         }
 
         public void Initialize(string fileName, long capacity, int dataSize)
@@ -96,7 +113,7 @@ namespace mAdcOW.DataStructures
             MapViewStream mvs;
             _viewThreadPool[threadId] = mvs = _map.MapAsStream();
 
-            Trace.Write(Thread.CurrentThread.ManagedThreadId);
+            Trace.Write(threadId);
             Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
             GC.AddMemoryPressure(mvs.Length);
             return mvs;
@@ -158,7 +175,7 @@ namespace mAdcOW.DataStructures
         {
             if (_viewThreadPool.ContainsKey(threadId))
             {
-                Trace.Write(Thread.CurrentThread.ManagedThreadId);
+                Trace.Write(threadId);
                 Trace.WriteLine("Removing GC memory pressure: " + _viewThreadPool[threadId].Length);
                 GC.RemoveMemoryPressure(_viewThreadPool[threadId].Length);
                 _viewThreadPool[threadId].Close();
@@ -241,7 +258,6 @@ namespace mAdcOW.DataStructures
             {
                 // TODO: Handle files which for some reason didn't want to be deleted
                 Trace.WriteLine(e.Message);
-                //throw;
             }
         }
 
