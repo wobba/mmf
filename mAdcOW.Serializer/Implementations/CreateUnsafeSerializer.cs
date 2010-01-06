@@ -20,7 +20,7 @@ namespace mAdcOW.Serializer
         private string _ptrType = "Int64";
         private int _size;
 
-        public ISerializeDeserialize<T> GerSerializer()
+        public ISerializeDeserialize<T> GetSerializer()
         {
             ValueTypeCheck checker = new ValueTypeCheck(typeof (T));
             if (!checker.OnlyValueTypes())
@@ -61,7 +61,6 @@ namespace mAdcOW.Serializer
                             interfaceType.Namespace,
                             typeFullName);
             sb.Append("{");
-            //sb.AppendFormat("byte[] _buffer = new byte[{0}];", _size);
             sb.AppendFormat("public bool CanSerializeType(){{return true;}}");
 
             ObjectToBytesCode(sb, typeFullName);
