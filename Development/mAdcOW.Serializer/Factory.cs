@@ -88,7 +88,7 @@ namespace mAdcOW.Serializer
             try
             {
                 CreateUnsafeSerializer<T> createUnsafeSerializer = new CreateUnsafeSerializer<T>();
-                createUnsafeSerializer.GerSerializer();
+                createUnsafeSerializer.GetSerializer();
             }
             catch (SerializerException)
             {
