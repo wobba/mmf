@@ -116,7 +116,7 @@ namespace mAdcOW.Serializer.Test
         public void When_serializing_integers_with_unsafe_serializer_validate_results()
         {
             CreateUnsafeSerializer<int> creator = new CreateUnsafeSerializer<int>();
-            var actual = creator.GerSerializer();
+            var actual = creator.GetSerializer();
             var array = actual.ObjectToBytes(1);
             var array2 = actual.ObjectToBytes(2);
 
