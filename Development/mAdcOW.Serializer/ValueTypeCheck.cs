@@ -56,6 +56,7 @@ namespace mAdcOW.Serializer
             object[] customAttributes = info.GetCustomAttributes(typeof (MarshalAsAttribute), true);
             if (customAttributes.Length == 0) return false;
             MarshalAsAttribute attribute = (MarshalAsAttribute) customAttributes[0];
+            if (attribute.Value == UnmanagedType.Currency) return true;
             return attribute.SizeConst > 0;
         }
     }
