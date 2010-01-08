@@ -115,7 +115,7 @@ namespace mAdcOW.Serializer
             sb.Append("{");
             sb.AppendFormat("byte[] buffer = new byte[{0}];", _size);
             sb.Append(@"
-                fixed (byte* destPtr = buffer)
+                fixed (byte* destPtr = &buffer[0])
                 {
                     ");
             sb.Append("byte* src = (byte*)&srcObject;");
