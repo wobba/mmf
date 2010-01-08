@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -60,20 +59,14 @@ namespace mAdcOW.DataStructures
         /// <summary>
         /// Set the position before setting or getting data
         /// </summary>
-        public long Position
+        internal long Position
         {
-            get
-            {
-                int threadId = Thread.CurrentThread.ManagedThreadId;
-                Stream s = ViewManager.GetView(threadId);
-                return s.Position;
-            }
             set
             {
                 int threadId = Thread.CurrentThread.ManagedThreadId;
                 Stream s = ViewManager.GetView(threadId);
                 s.Position = value * _dataSize;
-            }            
+            }
         }
 
         public override string ToString()
@@ -87,7 +80,6 @@ namespace mAdcOW.DataStructures
             {
                 ViewManager.CleanUp();
             }
-            GC.SuppressFinalize(this);
         }
 
         #endregion
@@ -128,7 +120,6 @@ namespace mAdcOW.DataStructures
 
         ~Array()
         {
-            Trace.WriteLine("Calling finalizer on Array:" + typeof(T).Name);
             Dispose();
         }
 
@@ -136,29 +127,19 @@ namespace mAdcOW.DataStructures
         {
             _dataSize = Marshal.SizeOf(typeof(T));
         }
-
+        
 
         internal void Write(byte[] buffer, long index)
         {
             Stream viewStream = GetThreadStream();
             viewStream.Position = index * _dataSize;
-            WriteBufferToStream(buffer);
+            WriteBufferToStream(viewStream, buffer);
         }
 
-        public void Write(byte[] buffer)
-        {
-            WriteBufferToStream(buffer);
-        }
-
-        internal void Write(byte[] buffer, int bufferLength)
-        {
-            WriteBufferToStream(buffer, bufferLength);
-        }
-
-        internal void WriteByte(byte b)
+        internal void Write(byte[] buffer)
         {
             Stream viewStream = GetThreadStream();
-            WriteBufferToStream(viewStream, b);
+            WriteBufferToStream(viewStream, buffer);
         }
 
         private Stream GetThreadStream()
@@ -167,38 +148,23 @@ namespace mAdcOW.DataStructures
             return ViewManager.GetView(threadId);
         }
 
-        private void WriteBufferToStream(byte[] buffer)
+        private void WriteBufferToStream(Stream viewStream, byte[] buffer)
         {
-            WriteBufferToStream(buffer, buffer.Length);
-        }
-
-        private void WriteBufferToStream(byte[] buffer, int bufferLength)
-        {
-            Stream viewStream = GetThreadStream();
-            if (NeedToGrowView(viewStream.Position, buffer.LongLength))
+            if (NeedToGrowView(viewStream.Position, buffer))
             {
-                viewStream = GrowViewAndGetNewStream(viewStream.Position, buffer.LongLength);
+                viewStream = GrowViewAndGetNewStream(viewStream.Position, buffer);
             }
-            viewStream.Write(buffer, 0, bufferLength);
+            viewStream.Write(buffer, 0, buffer.Length);
         }
 
-        private void WriteBufferToStream(Stream viewStream, byte b)
+        private bool NeedToGrowView(long streamPosition, byte[] buffer)
         {
-            if (NeedToGrowView(viewStream.Position, 1))
-            {
-                viewStream = GrowViewAndGetNewStream(viewStream.Position, 1);
-            }
-            viewStream.WriteByte(b);
+            return AutoGrow && !ViewManager.EnoughBackingCapacity(streamPosition, buffer.LongLength);
         }
 
-        private bool NeedToGrowView(long streamPosition, long length)
+        private Stream GrowViewAndGetNewStream(long originalPosition, byte[] buffer)
         {
-            return AutoGrow && !ViewManager.EnoughBackingCapacity(streamPosition, length);
-        }
-
-        private Stream GrowViewAndGetNewStream(long originalPosition, long length)
-        {
-            ViewManager.Grow(originalPosition + length);
+            ViewManager.Grow(originalPosition + buffer.LongLength);
             Stream viewStream = GetThreadStream();
             viewStream.Position = originalPosition;
             return viewStream;
@@ -208,12 +174,12 @@ namespace mAdcOW.DataStructures
         /// Reads a T from the current position
         /// </summary>
         /// <returns>Byte array of the size of T</returns>
-        public byte[] Read()
+        internal byte[] Read()
         {
             return MultiRead(_dataSize);
         }
 
-        public byte[] Read(long index)
+        internal byte[] Read(long index)
         {
             int threadId = Thread.CurrentThread.ManagedThreadId;
             Stream s = ViewManager.GetView(threadId);
@@ -223,7 +189,7 @@ namespace mAdcOW.DataStructures
             return FillBufferFromStream(buffer, s);
         }
 
-        public byte[] MultiRead(int count)
+        internal byte[] MultiRead(int count)
         {
             int threadId = Thread.CurrentThread.ManagedThreadId;
 
@@ -234,16 +200,11 @@ namespace mAdcOW.DataStructures
 
         private byte[] FillBufferFromStream(byte[] buffer, Stream stream)
         {
-            int totalBytesToRead = buffer.Length;
-            int totalBytesRead = 0;
-            while (totalBytesToRead > 0)
+            int bytesRead = 0;
+            do
             {
-                int bytesRead = stream.Read(buffer, totalBytesRead, totalBytesToRead);
-                if (bytesRead == 0)
-                    break;
-                totalBytesRead += bytesRead;
-                totalBytesToRead -= bytesRead;
-            }
+                bytesRead = stream.Read(buffer, bytesRead, buffer.Length - bytesRead);
+            } while (bytesRead != _dataSize && bytesRead > 0);
             return buffer;
         }
 
@@ -258,21 +219,11 @@ namespace mAdcOW.DataStructures
         {
             get
             {
-                if (index < 0)
+
+                ValueLock.EnterReadLock();
+                if (index >= Length || index < 0)
                 {
                     throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
-                }
-                ValueLock.EnterReadLock();
-                if (index >= Capacity)
-                {
-                    if (AutoGrow)
-                    {
-                        ViewManager.Grow(index);
-                    }
-                    else
-                    {
-                        throw new IndexOutOfRangeException("Tried to access item outside the array boundaries");
-                    }
                 }
                 try
                 {

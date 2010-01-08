@@ -154,7 +154,7 @@ namespace Winterdom.IO.FileMap
         {
             get { return _mapSize; }
         }
-
+        
         public override long Position
         {
             get { return _position; }
@@ -183,54 +183,10 @@ namespace Winterdom.IO.FileMap
                 throw new ArgumentException("Invalid Offset");
 
             int bytesToRead = (int)Math.Min(Length - _position, count);
-            //Marshal.Copy((IntPtr)(_viewBaseAddr.ToInt64() + _position), buffer, offset, bytesToRead);
-
-            UnsafeRead(buffer, offset, bytesToRead);
+            Marshal.Copy((IntPtr)(_viewBaseAddr.ToInt64() + _position), buffer, offset, bytesToRead);
 
             _position += bytesToRead;
             return bytesToRead;
-        }
-
-        private void UnsafeRead(byte[] buffer, int offset, int count)
-        {
-            unsafe
-            {
-                fixed (byte* destPtr = buffer)
-                {
-                    byte* src = (byte*)(_viewBaseAddr.ToInt64() + _position);
-                    byte* dest = destPtr + offset;
-                    while (count >= 8)
-                    {
-                        *((Int64*)dest) = *((Int64*)src);
-                        dest += 8;
-                        src += 8;
-                        count -= 8;
-                    }
-                    if (count == 0) return;
-                    while (count >= 4)
-                    {
-                        *((Int32*)dest) = *((Int32*)src);
-                        dest += 4;
-                        src += 4;
-                        count -= 4;
-                    }
-                    if (count == 0) return;
-                    while (count >= 2)
-                    {
-                        *((Int16*)dest) = *((Int16*)src);
-                        dest += 2;
-                        src += 2;
-                        count -= 2;
-                    }
-                    while (count >= 1)
-                    {
-                        *dest = *src;
-                        dest += 1;
-                        src += 1;
-                        count -= 1;
-                    }
-                }
-            }
         }
 
         public override void Write(byte[] buffer, int offset, int count)
@@ -247,52 +203,9 @@ namespace Winterdom.IO.FileMap
             if (bytesToWrite == 0)
                 return;
 
-            //Marshal.Copy(buffer, offset, (IntPtr)(_viewBaseAddr.ToInt64() + _position), bytesToWrite);
-            UnsafeWrite(buffer, offset, bytesToWrite);
+            Marshal.Copy(buffer, offset, (IntPtr)(_viewBaseAddr.ToInt64() + _position), bytesToWrite);
 
             _position += bytesToWrite;
-        }
-
-        private void UnsafeWrite(byte[] buffer, int offset, int count)
-        {
-            unsafe
-            {
-                fixed (byte* srcPtr = buffer)
-                {
-                    byte* src = srcPtr + offset;
-                    byte* dest = (byte*)(_viewBaseAddr.ToInt64() + _position);
-                    while (count >= 8)
-                    {
-                        *((Int64*)dest) = *((Int64*)src);
-                        src += 8;
-                        dest += 8;
-                        count -= 8;
-                    }
-                    if (count == 0) return;
-                    while (count >= 4)
-                    {
-                        *((Int32*)dest) = *((Int32*)src);
-                        src += 4;
-                        dest += 4;
-                        count -= 4;
-                    }
-                    if (count == 0) return;
-                    while (count >= 2)
-                    {
-                        *((Int16*)dest) = *((Int16*)src);
-                        src += 2;
-                        dest += 2;
-                        count -= 2;
-                    }
-                    while (count >= 1)
-                    {
-                        *dest = *src;
-                        src += 1;
-                        dest += 1;
-                        count -= 1;
-                    }
-                }
-            }
         }
 
 

@@ -32,12 +32,7 @@ namespace mAdcOW.Serializer
         {
             try
             {
-                object[] args = null;
-                if (typeof(T) == typeof(string))
-                {
-                    args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
-                }
-                T classInstance = (T)Activator.CreateInstance(typeof(T), args);
+                T classInstance = (T) Activator.CreateInstance(typeof (T), null);
                 byte[] bytes = ObjectToBytes(classInstance);
                 BytesToObject(bytes);
             }

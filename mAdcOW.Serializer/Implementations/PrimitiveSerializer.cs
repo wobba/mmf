@@ -251,26 +251,4 @@ namespace mAdcOW.Serializer
 
         #endregion
     }
-
-    public class PrimitiveSerializerString : ISerializeDeserialize<string>
-    {
-        #region ISerializeDeserialize<ushort> Members
-
-        public byte[] ObjectToBytes(string data)
-        {
-            return System.Text.Encoding.UTF8.GetBytes(data);
-        }
-
-        public string BytesToObject(byte[] bytes)
-        {
-            return System.Text.Encoding.UTF8.GetString(bytes);
-        }
-
-        public bool CanSerializeType()
-        {
-            return true;
-        }
-
-        #endregion
-    }
 }

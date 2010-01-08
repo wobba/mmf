@@ -14,39 +14,26 @@ namespace mAdcOW.Serializer
     /// <typeparam name="T"></typeparam>
     public class CreateUnsafeSerializer<T>
     {
-        private readonly Type _type = typeof(T);
+        private readonly Type _type = typeof (T);
         private int _addCount;
         private int _ptrSize = 8;
         private string _ptrType = "Int64";
         private int _size;
 
-        public ISerializeDeserialize<T> GetSerializer()
+        public ISerializeDeserialize<T> GerSerializer()
         {
-            if (!CanGetSize()) return null;
-            ValueTypeCheck checker = new ValueTypeCheck(typeof(T));
+            ValueTypeCheck checker = new ValueTypeCheck(typeof (T));
             if (!checker.OnlyValueTypes())
             {
                 return null;
             }
+            _size = Marshal.SizeOf(typeof (T));
             CompilerResults res = CompileCode();
             if (res.Errors.Count > 0)
             {
                 throw new SerializerException(res.Errors[0].ErrorText);
             }
-            return (ISerializeDeserialize<T>)res.CompiledAssembly.CreateInstance("UnsafeConverter");
-        }
-
-        private bool CanGetSize()
-        {
-            try
-            {
-                _size = Marshal.SizeOf(typeof(T));
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-            return true;
+            return (ISerializeDeserialize<T>) res.CompiledAssembly.CreateInstance("UnsafeConverter");
         }
 
         private CompilerResults CompileCode()
@@ -68,12 +55,13 @@ namespace mAdcOW.Serializer
             sb.AppendLine("using System;");
             sb.AppendLine();
 
-            Type interfaceType = typeof(ISerializeDeserialize<T>);
+            Type interfaceType = typeof (ISerializeDeserialize<T>);
 
             sb.AppendFormat("public class UnsafeConverter : {0}.ISerializeDeserialize<{1}>",
                             interfaceType.Namespace,
                             typeFullName);
             sb.Append("{");
+            //sb.AppendFormat("byte[] _buffer = new byte[{0}];", _size);
             sb.AppendFormat("public bool CanSerializeType(){{return true;}}");
 
             ObjectToBytesCode(sb, typeFullName);
@@ -102,11 +90,17 @@ namespace mAdcOW.Serializer
         {
             sb.AppendFormat("public unsafe {0} BytesToObject( byte[] bytes )", typeFullName);
             sb.Append("{");
+            sb.AppendFormat("{0} data = new {0}();", typeFullName);
             sb.Append(@"
-                fixed (byte* srcPtr = &bytes[0])
-                {");
-            sb.AppendFormat("return *({0}*)srcPtr;", typeFullName);
-            sb.Append("}}");
+                fixed (byte* srcPtr = bytes)
+                {
+            ");
+            sb.Append("byte* src = srcPtr;");
+            sb.Append("byte* dest = (byte*)&data;");
+
+            GenerateMethodBodyCode(sb);
+
+            sb.Append("}return data;}");
         }
 
         private void ObjectToBytesCode(StringBuilder sb, string typeFullName)
@@ -115,7 +109,7 @@ namespace mAdcOW.Serializer
             sb.Append("{");
             sb.AppendFormat("byte[] buffer = new byte[{0}];", _size);
             sb.Append(@"
-                fixed (byte* destPtr = &buffer[0])
+                fixed (byte* destPtr = buffer)
                 {
                     ");
             sb.Append("byte* src = (byte*)&srcObject;");
@@ -135,7 +129,7 @@ namespace mAdcOW.Serializer
             {
                 MovePointers(sb);
                 SetPointerLength(length);
-                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount / _ptrSize);
+                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount/_ptrSize);
                 length -= _ptrSize;
                 _addCount += _ptrSize;
             } while (length > 0);
@@ -143,7 +137,7 @@ namespace mAdcOW.Serializer
 
         private void MovePointers(StringBuilder sb)
         {
-            int modifer = _addCount / _ptrSize;
+            int modifer = _addCount/_ptrSize;
             if (modifer >= _ptrSize)
             {
                 sb.AppendFormat("dest += {0};", _addCount);

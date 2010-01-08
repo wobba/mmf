@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ByteArrayTest.cs" />
-    <Compile Include="DictionaryTestUnknownSizeBacking.cs" />
     <Compile Include="MemoryMappedDictionaryEqualHashTest.cs" />
     <Compile Include="MemoryMappedDictionaryTestClassValue.cs" />
     <Compile Include="MemoryMappedArrayTest.cs" />

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using mAdcOW.DataStructures.DictionaryBacking;
 
 namespace mAdcOW.DataStructures
 {
@@ -14,7 +13,7 @@ namespace mAdcOW.DataStructures
     /// <typeparam name="TValue"></typeparam>
     public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly IDictionaryPersist<TKey, TValue> _persistHandler;
 
         public Dictionary(IDictionaryPersist<TKey, TValue> persistHandler)
@@ -23,18 +22,8 @@ namespace mAdcOW.DataStructures
         }
 
         public Dictionary(string path)
-            : this(new BackingUnknownSize<TKey, TValue>(path, 20000))
+            : this(new DictionaryPersist<TKey, TValue>(path))
         {
-        }
-
-        public Dictionary(string path, int capacity)
-            : this(new BackingUnknownSize<TKey, TValue>(path, capacity))
-        {
-        }
-
-        ~Dictionary()
-        {
-            _persistHandler.Dispose();
         }
 
         public bool IsStruct { get; set; }
@@ -149,26 +138,41 @@ namespace mAdcOW.DataStructures
             }
             set
             {
-                _lock.EnterWriteLock();
+                _lock.EnterUpgradeableReadLock();
                 try
                 {
                     TValue existing;
-                    if (_persistHandler.TryGetValue(key, out existing))
+                    if (TryGetValue(key, out existing))
                     {
                         if (!_persistHandler.ByteCompare(value, existing))
                         {
-                            _persistHandler.Remove(key);
-                            _persistHandler.Add(key, value);
+                            _lock.EnterWriteLock();
+                            try
+                            {
+                                UpdateItem(key, value);
+                            }
+                            finally
+                            {
+                                _lock.ExitWriteLock();
+                            }
                         }
                     }
                     else
                     {
-                        _persistHandler.Add(key, value);
+                        _lock.EnterWriteLock();
+                        try
+                        {
+                            Add(key, value);
+                        }
+                        finally
+                        {
+                            _lock.ExitWriteLock();
+                        }                        
                     }
                 }
                 finally
                 {
-                    _lock.ExitWriteLock();
+                    _lock.ExitUpgradeableReadLock();
                 }
             }
         }
@@ -183,7 +187,7 @@ namespace mAdcOW.DataStructures
         ///
         public ICollection<TKey> Keys
         {
-            get { return new System.Collections.Generic.List<TKey>(_persistHandler.AllKeys()); }
+            get { return _persistHandler.AllKeys(); }
         }
 
         ///<summary>
@@ -196,7 +200,7 @@ namespace mAdcOW.DataStructures
         ///
         public ICollection<TValue> Values
         {
-            get { return new System.Collections.Generic.List<TValue>(_persistHandler.AllValues()); }
+            get { return _persistHandler.AllValues(); }
         }
 
         ///<summary>
@@ -363,6 +367,20 @@ namespace mAdcOW.DataStructures
         public bool ContainsValue(TValue value)
         {
             return _persistHandler.ContainsValue(value);
+        }
+
+        private void UpdateItem(TKey key, TValue value)
+        {
+            _lock.EnterWriteLock();
+            try
+            {
+                Remove(key);
+                Add(key, value);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
     }
 }

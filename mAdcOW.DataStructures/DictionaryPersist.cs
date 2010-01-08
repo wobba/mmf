@@ -6,12 +6,14 @@ using mAdcOW.Serializer;
 
 namespace mAdcOW.DataStructures
 {
-    public class DictionaryPersist<TKey, TValue> : IDictionaryPersist<TKey, TValue>
+    internal class DictionaryPersist<TKey, TValue> : IDictionaryPersist<TKey, TValue>
     {
         private static ISerializeDeserialize<TKey> _keySerializer;
         private static ISerializeDeserialize<TValue> _valueSerializer;
 
-        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>> _fileOffsets;
+        private readonly System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>
+            _fileOffsets =
+                new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>();
 
         private readonly string _path;
         private int _keyDataSize = -1;
@@ -21,9 +23,8 @@ namespace mAdcOW.DataStructures
         private long _largestSeenKeyPosition;
         private long _largestSeenValuePosition;
 
-        public DictionaryPersist(string path, int capacity)
+        public DictionaryPersist(string path)
         {
-            _fileOffsets = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>(capacity);
             FindKeyValueSize();
 
             Factory<TKey> keyFactory = new Factory<TKey>();
@@ -34,11 +35,6 @@ namespace mAdcOW.DataStructures
             _path = path;
             _keys = new Array<byte>(1000, path, true);
             _values = new Array<byte>(1000, path, true);
-        }
-
-        public DictionaryPersist(string path)
-            : this(path, 1000000)
-        {
         }
 
         #region IDictionaryPersist<TKey,TValue> Members
@@ -96,7 +92,7 @@ namespace mAdcOW.DataStructures
                 if (!_fileOffsets.TryGetValue(key.GetHashCode(), out keyFilePositions))
                 {
                     _fileOffsets[key.GetHashCode()] =
-                        keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>(1);
+                        keyFilePositions = new System.Collections.Generic.List<KeyValueFileOffset>();
                 }
             }
             Persist(key, value, keyFilePositions);
@@ -132,28 +128,35 @@ namespace mAdcOW.DataStructures
                                                  _valueSerializer.ObjectToBytes(existing));
         }
 
-        public IEnumerable<TKey> AllKeys()
+        public ICollection<TKey> AllKeys()
         {
+            System.Collections.Generic.List<TKey> keys = new System.Collections.Generic.List<TKey>(_fileOffsets.Count);
+
             foreach (System.Collections.Generic.List<KeyValueFileOffset> offsets in _fileOffsets.Values)
             {
                 foreach (KeyValueFileOffset fileOffset in offsets)
                 {
                     TKey key = ReadDictionaryKey(fileOffset);
-                    yield return key;
+                    keys.Add(key);
                 }
             }
+            return keys;
         }
 
-        public IEnumerable<TValue> AllValues()
+        public ICollection<TValue> AllValues()
         {
+            System.Collections.Generic.List<TValue> values =
+                new System.Collections.Generic.List<TValue>(_fileOffsets.Count);
+
             foreach (System.Collections.Generic.List<KeyValueFileOffset> offsets in _fileOffsets.Values)
             {
                 foreach (KeyValueFileOffset fileOffset in offsets)
                 {
                     TValue value = ReadDictionaryValue(fileOffset);
-                    yield return value;
+                    values.Add(value);
                 }
             }
+            return values;
         }
 
         public void Clear()
@@ -166,28 +169,14 @@ namespace mAdcOW.DataStructures
             Count = 0;
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        public void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                GC.SuppressFinalize(this);
-                if (_keys != null)
-                    _keys.Dispose();
-                if (_values != null)
-                    _values.Dispose();
-            }
-        }
-
         #endregion
 
         ~DictionaryPersist()
         {
-            Dispose(false);
+            if (_keys != null)
+                _keys.Dispose();
+            if (_values != null)
+                _values.Dispose();
         }
 
         private void FindKeyValueSize()
