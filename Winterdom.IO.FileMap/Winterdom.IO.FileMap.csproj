@@ -86,6 +86,12 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Users\msvenson\Documents\Visual Studio 2008\Projects\SparseFileTest\NTFS.Sparse\NTFS.Sparse.csproj">
+      <Project>{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}</Project>
+      <Name>NTFS.Sparse</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

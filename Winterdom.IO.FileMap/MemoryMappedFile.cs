@@ -31,6 +31,7 @@ using System;
 using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace Winterdom.IO.FileMap
 {
@@ -250,6 +251,10 @@ namespace Winterdom.IO.FileMap
                           );
                 if (hFile == INVALID_HANDLE_VALUE)
                     throw new FileMapIOException(Marshal.GetHRForLastWin32Error());
+
+                //SafeFileHandle handle = new SafeFileHandle(hFile,true);
+                //NTFS.Sparse.SparseFile.MarkSparse(handle);
+
 
                 map._fileName = fileName;
             }

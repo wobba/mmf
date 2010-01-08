@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using mAdcOW.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -86,6 +87,26 @@ namespace DataStructuresTest
             {
                 Assert.AreEqual(i, expected);
                 expected++;
+            }
+        }
+
+
+
+        //[TestMethod]
+        public void Sparse()
+        {
+            _testList.AutoGrow = true;
+
+            Random r = new Random(); ;
+            for (int i = 0; i < 20000; i++)
+            {
+                if (i % 1000 == 0)
+                {
+                    Trace.WriteLine(i);
+                }
+                long pos = r.Next(500000);
+                _testList[pos] = 2;
+                Assert.AreEqual(2, _testList[pos]);
             }
         }
     }
