@@ -4,11 +4,13 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{15DDC900-49FE-4212-9ED1-48F626D1FB86}</ProjectGuid>
+    <ProjectGuid>{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Winterdom.IO.FileMap</RootNamespace>
-    <AssemblyName>Winterdom.IO.FileMap</AssemblyName>
+    <RootNamespace>AltSerialize</RootNamespace>
+    <AssemblyName>AltSerialize</AssemblyName>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>AltSerialize.snk</AssemblyOriginatorKeyFile>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
     <SccAuxPath>SAK</SccAuxPath>
@@ -43,7 +45,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -52,7 +53,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -63,13 +63,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileMapIOException.cs" />
-    <Compile Include="MapViewStream.cs" />
-    <Compile Include="MemoryMappedFile.cs" />
+    <Compile Include="AltFormatter.cs" />
+    <Compile Include="AltSerializeException.cs" />
+    <Compile Include="AltSerializer.cs" />
+    <Compile Include="AltSerializer.deserialize.cs" />
+    <Compile Include="AltSerializer.serialize.cs" />
+    <Compile Include="ByteSerializer.cs" />
+    <Compile Include="CompiledSerializerAttribute.cs" />
+    <Compile Include="DoNotSerializeAttribute.cs" />
+    <Compile Include="DynamicSerializerFactory.cs" />
+    <Compile Include="IAltSerializable.cs" />
+    <Compile Include="DynamicSerializer.cs" />
+    <Compile Include="ObjectField.cs" />
+    <Compile Include="ObjectMetaData.cs" />
+    <Compile Include="ReflectedMemberInfo.cs" />
+    <Compile Include="SerializedObjectFlags.cs" />
+    <Compile Include="SerializeFlags.cs" />
+    <Compile Include="Serializer.cs" />
+    <Compile Include="SerializerCache.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Win32APIs.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="AltSerialize.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ChangeLog.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
     <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
       <Visible>False</Visible>
       <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
@@ -85,12 +110,11 @@
       <ProductName>.NET Framework 3.5</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Users\msvenson\Documents\Visual Studio 2008\Projects\SparseFileTest\NTFS.Sparse\NTFS.Sparse.csproj">
-      <Project>{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}</Project>
-      <Name>NTFS.Sparse</Name>
-    </ProjectReference>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

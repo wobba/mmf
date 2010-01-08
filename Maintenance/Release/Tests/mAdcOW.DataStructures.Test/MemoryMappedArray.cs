@@ -1,18 +1,21 @@
+#region
+
 using System;
-using System.Diagnostics;
-using mAdcOW.DataStructures;
+using mAdcOW.DiskStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DataStructuresTest
+#endregion
+
+namespace DiskStructuresTest
 {
     /// <summary>
-    ///This is a test class for MemoryMappedArrayTest and is intended
-    ///to contain all MemoryMappedArrayTest Unit Tests
+    ///This is a test class for MemoryMappedArray and is intended
+    ///to contain all MemoryMappedArray Unit Tests
     ///</summary>
     [TestClass]
-    public class MemoryMappedArrayTest
+    public class MemoryMappedArray
     {
-        private Array<int> _testList;
+        private MemoryMappedArray<int> _testList;
 
         /// <summary>
         ///Gets or sets the test context which provides
@@ -20,18 +23,45 @@ namespace DataStructuresTest
         ///</summary>
         public TestContext TestContext { get; set; }
 
-        [TestCleanup]
-        public void MyTestCleanup()
-        {
-            _testList.Dispose();
-        }
+        #region Additional test attributes
+
+        // 
+        //You can use the following additional attributes as you write your tests:
+        //
+        //Use ClassInitialize to run code before running the first test in the class
+        //[ClassInitialize()]
+        //public static void MyClassInitialize(TestContext testContext)
+        //{
+        //}
+        //
+        //Use ClassCleanup to run code after all tests in a class have run
+        //[ClassCleanup()]
+        //public static void MyClassCleanup()
+        //{
+        //}
+        //
+        //Use TestInitialize to run code before running each test
+        //[TestInitialize()]
+        //public void MyTestInitialize()
+        //{
+        //}
+        //
+        //Use TestCleanup to run code after each test has run
+        //[TestCleanup()]
+        //public void MyTestCleanup()
+        //{
+        //}
+        //
+
+        #endregion
 
         [TestInitialize]
         public void TestInit()
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
-            _testList = new Array<int>(10, path);
+            _testList = new MemoryMappedArray<int>(10, path);
         }
+
 
         [TestMethod]
         public void Set_and_get_a_value_within_defined_range()
@@ -81,32 +111,13 @@ namespace DataStructuresTest
             for (int i = 0; i < _testList.Length; i++)
             {
                 _testList[i] = i;
-            }            
+            }
+
             int expected = 0;
             foreach (int i in _testList)
             {
                 Assert.AreEqual(i, expected);
                 expected++;
-            }
-        }
-
-
-
-        //[TestMethod]
-        public void Sparse()
-        {
-            _testList.AutoGrow = true;
-
-            Random r = new Random(); ;
-            for (int i = 0; i < 20000; i++)
-            {
-                if (i % 1000 == 0)
-                {
-                    Trace.WriteLine(i);
-                }
-                long pos = r.Next(500000);
-                _testList[pos] = 2;
-                Assert.AreEqual(2, _testList[pos]);
             }
         }
     }
