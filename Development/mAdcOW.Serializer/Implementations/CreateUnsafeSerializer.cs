@@ -14,7 +14,7 @@ namespace mAdcOW.Serializer
     /// <typeparam name="T"></typeparam>
     public class CreateUnsafeSerializer<T>
     {
-        private readonly Type _type = typeof (T);
+        private readonly Type _type = typeof(T);
         private int _addCount;
         private int _ptrSize = 8;
         private string _ptrType = "Int64";
@@ -22,18 +22,31 @@ namespace mAdcOW.Serializer
 
         public ISerializeDeserialize<T> GetSerializer()
         {
-            ValueTypeCheck checker = new ValueTypeCheck(typeof (T));
+            if (!CanGetSize()) return null;
+            ValueTypeCheck checker = new ValueTypeCheck(typeof(T));
             if (!checker.OnlyValueTypes())
             {
                 return null;
             }
-            _size = Marshal.SizeOf(typeof (T));
             CompilerResults res = CompileCode();
             if (res.Errors.Count > 0)
             {
                 throw new SerializerException(res.Errors[0].ErrorText);
             }
-            return (ISerializeDeserialize<T>) res.CompiledAssembly.CreateInstance("UnsafeConverter");
+            return (ISerializeDeserialize<T>)res.CompiledAssembly.CreateInstance("UnsafeConverter");
+        }
+
+        private bool CanGetSize()
+        {
+            try
+            {
+                _size = Marshal.SizeOf(typeof(T));
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+            return true;
         }
 
         private CompilerResults CompileCode()
@@ -55,7 +68,7 @@ namespace mAdcOW.Serializer
             sb.AppendLine("using System;");
             sb.AppendLine();
 
-            Type interfaceType = typeof (ISerializeDeserialize<T>);
+            Type interfaceType = typeof(ISerializeDeserialize<T>);
 
             sb.AppendFormat("public class UnsafeConverter : {0}.ISerializeDeserialize<{1}>",
                             interfaceType.Namespace,
@@ -122,7 +135,7 @@ namespace mAdcOW.Serializer
             {
                 MovePointers(sb);
                 SetPointerLength(length);
-                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount/_ptrSize);
+                sb.AppendFormat(@"*(({0}*)dest+{1}) = *(({0}*)src+{1});", _ptrType, _addCount / _ptrSize);
                 length -= _ptrSize;
                 _addCount += _ptrSize;
             } while (length > 0);
@@ -130,7 +143,7 @@ namespace mAdcOW.Serializer
 
         private void MovePointers(StringBuilder sb)
         {
-            int modifer = _addCount/_ptrSize;
+            int modifer = _addCount / _ptrSize;
             if (modifer >= _ptrSize)
             {
                 sb.AppendFormat("dest += {0};", _addCount);
