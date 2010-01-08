@@ -14,8 +14,8 @@ namespace BenchmarkConsoleApp
         {
             ThreadPool.SetMaxThreads(10, 1000);
 
-            //TextWriterTraceListener tr1 = new TextWriterTraceListener(Console.Out);
-            //Debug.Listeners.Add(tr1);
+            TextWriterTraceListener tr1 = new TextWriterTraceListener(Console.Out);
+            Debug.Listeners.Add(tr1);
 
             SingelThread_HashInMemory();
             SingelThread_HashOnDisk();
@@ -26,6 +26,7 @@ namespace BenchmarkConsoleApp
 
         private static void Threaded_HashOnDisk()
         {
+            Console.WriteLine("Threaded_HashOnDisk");
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<string, string> backingFile = new BackingUnknownSize<string, string>(path, MaxCount);
 
@@ -45,8 +46,7 @@ namespace BenchmarkConsoleApp
                                                      {
                                                          string key = Guid.NewGuid().ToString();
                                                          dict.Add(key, key);
-                                                         string x = dict[key];
-                                                         Trace.WriteLine(x.Length);
+                                                         if(string.IsNullOrEmpty(dict[key])) throw new Exception();
                                                      }
                                                      mre.Set();
                                                  }, null);
@@ -60,6 +60,7 @@ namespace BenchmarkConsoleApp
 
         private static void Threaded_HashInMemory()
         {
+            Console.WriteLine("Threaded_HashInMemory");
             string path = AppDomain.CurrentDomain.BaseDirectory;
             DictionaryPersist<string, string> backingFile = new DictionaryPersist<string, string>(path, MaxCount);
 
@@ -79,8 +80,7 @@ namespace BenchmarkConsoleApp
                                                      {
                                                          string key = Guid.NewGuid().ToString();
                                                          dict.Add(key, key);
-                                                         string x = dict[key];
-                                                         Trace.WriteLine(x.Length);
+                                                         if (string.IsNullOrEmpty(dict[key])) throw new Exception();
                                                      }
                                                      mre.Set();
                                                  }, null);
@@ -94,6 +94,7 @@ namespace BenchmarkConsoleApp
 
         private static void SingelThread_HashOnDisk()
         {
+            Console.WriteLine("SingelThread_HashOnDisk");
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<string, string> backingFile = new BackingUnknownSize<string, string>(path, MaxCount);
 
@@ -104,8 +105,7 @@ namespace BenchmarkConsoleApp
             {
                 string key = Guid.NewGuid().ToString();
                 dict.Add(key, key);
-                string x = dict[key];
-                Trace.WriteLine(x.Length);
+                if (string.IsNullOrEmpty(dict[key])) throw new Exception();
             }
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
@@ -113,6 +113,7 @@ namespace BenchmarkConsoleApp
 
         private static void SingelThread_HashInMemory()
         {
+            Console.WriteLine("SingelThread_HashInMemory");
             string path = AppDomain.CurrentDomain.BaseDirectory;
             DictionaryPersist<string, string> backingFile = new DictionaryPersist<string, string>(path, MaxCount);
 
@@ -123,8 +124,7 @@ namespace BenchmarkConsoleApp
             {
                 string key = Guid.NewGuid().ToString();
                 dict.Add(key, key);
-                string x = dict[key];
-                Trace.WriteLine(x.Length);
+                if (string.IsNullOrEmpty(dict[key])) throw new Exception();
             }
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
