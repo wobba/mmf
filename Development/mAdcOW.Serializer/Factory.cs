@@ -7,6 +7,8 @@ namespace mAdcOW.Serializer
 {
     public class Factory<T>
     {
+        static HashSet<Type> _compiledUnsafeSerializer = new HashSet<Type>();
+
         private static readonly Dictionary<Type, ISerializeDeserialize<T>> _dictionaryCache =
             new Dictionary<Type, ISerializeDeserialize<T>>();
 
@@ -33,6 +35,19 @@ namespace mAdcOW.Serializer
             if (benchmarkTimes.Count == 0) throw new SerializerException("No serializer available for the type");
 
             return benchmarkTimes.Last().Value;
+        }
+
+        public List<ISerializeDeserialize<T>> GetValidSerializers()
+        {
+            CompileAndRegisterUnsafeSerializer();
+
+            List<Type> listOfSerializers = GetListOfGenericSerializers();
+            listOfSerializers.AddRange(GetListOfImplementedSerializers());
+
+            var benchmarkTimes = BenchmarkSerializers(listOfSerializers);
+            if (benchmarkTimes.Count == 0) throw new SerializerException("No serializer available for the type");
+
+            return benchmarkTimes.Values.ToList();
         }
 
         private List<Type> GetListOfGenericSerializers()
@@ -87,8 +102,10 @@ namespace mAdcOW.Serializer
         {
             try
             {
+                if (_compiledUnsafeSerializer.Contains(typeof(T))) return;
                 CreateUnsafeSerializer<T> createUnsafeSerializer = new CreateUnsafeSerializer<T>();
                 createUnsafeSerializer.GetSerializer();
+                _compiledUnsafeSerializer.Add(typeof(T));
             }
             catch (SerializerException)
             {
