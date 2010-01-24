@@ -7,7 +7,7 @@ namespace mAdcOW.DataStructures.DictionaryBacking
     internal static class HashHelpers
     {
         // Fields
-        internal static readonly int[] Primes = new[]
+        private static readonly int[] _primes = new[]
                                                     {
                                                         3, 7, 11, 0x11, 0x17, 0x1d, 0x25, 0x2f, 0x3b, 0x47, 0x59, 0x6b,
                                                         0x83, 0xa3, 0xc5, 0xef,
@@ -31,9 +31,9 @@ namespace mAdcOW.DataStructures.DictionaryBacking
             {
                 throw new ArgumentException("CapacityOverflow");
             }
-            for (int i = 0; i < Primes.Length; i++)
+            for (int i = 0; i < _primes.Length; i++)
             {
-                int num2 = Primes[i];
+                int num2 = _primes[i];
                 if (num2 >= min)
                 {
                     return num2;
