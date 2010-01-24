@@ -1,12 +1,5 @@
 ﻿using System;
-using System.CodeDom;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization;
-using Microsoft.CSharp;
-
 
 namespace mAdcOW.Serializer.Implementations
 {
@@ -31,11 +24,11 @@ namespace mAdcOW.Serializer.Implementations
             try
             {
                 object[] args = null;
-                if (typeof(T) == typeof(string))
+                if (typeof (T) == typeof (string))
                 {
-                    args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
+                    args = new object[] {new[] {'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't'}};
                 }
-                T classInstance = (T)Activator.CreateInstance(typeof(T), args);
+                T classInstance = (T) Activator.CreateInstance(typeof (T), args);
                 byte[] bytes = ObjectToBytes(classInstance);
                 if (bytes.Length == 0) return false;
                 BytesToObject(bytes);
