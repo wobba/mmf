@@ -44,9 +44,8 @@ namespace mAdcOW.DataStructures
             try
             {
                 AutoGrow = true;
-                base[Count] = item;
+                base[Count++] = item;
                 AutoGrow = false;
-                Count++;
             }
             finally
             {
