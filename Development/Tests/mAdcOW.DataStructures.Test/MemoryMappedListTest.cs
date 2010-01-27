@@ -2,7 +2,7 @@ using System;
 using mAdcOW.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DataStructuresTest
+namespace mAdcOW.DataStructures.Test
 {
     /// <summary>
     ///This is a test class for MemoryMappedListTest and is intended
@@ -202,11 +202,39 @@ namespace DataStructuresTest
                 Assert.AreEqual(expected, i);
                 expected++;
             }
-
         }
 
-        public void test()
+        [TestMethod]
+        public void When_iteration_over_the_list_throw_exception_if_items_are_removed()
         {
+            _testList.Add(1);
+            _testList.Add(2);
+            var enumerator = _testList.GetEnumerator();
+            enumerator.MoveNext();
+            _testList.Remove(1);
+            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
+        }
+
+        [TestMethod]
+        public void When_iteration_over_the_list_throw_exception_if_items_are_added()
+        {
+            _testList.Add(1);
+            _testList.Add(2);
+            var enumerator = _testList.GetEnumerator();
+            enumerator.MoveNext();
+            _testList.Add(1);
+            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
+        }
+
+        [TestMethod]
+        public void When_iteration_over_the_list_throw_exception_if_items_are_inserted()
+        {
+            _testList.Add(1);
+            _testList.Add(2);
+            var enumerator = _testList.GetEnumerator();
+            enumerator.MoveNext();
+            _testList.Insert(0,5);
+            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
         }
     }
 }
