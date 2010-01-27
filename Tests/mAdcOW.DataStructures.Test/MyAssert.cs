@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DataStructuresTest
+namespace mAdcOW.DataStructures.Test
 {
     /// <summary>
     /// Contains assertion types that are not provided with the standard MSTest assertions.

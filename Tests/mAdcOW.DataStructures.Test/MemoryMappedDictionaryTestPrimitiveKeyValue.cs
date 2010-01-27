@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using mAdcOW.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DataStructuresTest
+namespace mAdcOW.DataStructures.Test
 {
     /// <summary>
     /// Summary description for MemoryMappedDictionaryTest

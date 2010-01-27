@@ -1,11 +1,6 @@
-﻿using System;
-using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using mAdcOW.DataStructures;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace DataStructuresTest
+namespace mAdcOW.DataStructures.Test
 {
     /// <summary>
     /// Summary description for ByteArrayTest
@@ -46,3 +41,5 @@ namespace DataStructuresTest
         }
     }
 }
+
+
