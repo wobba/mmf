@@ -10,10 +10,6 @@ namespace mAdcOW.Serializer
     public class AltSerialize<T> : ISerializeDeserialize<T>
     {
         private readonly ByteSerializer _serializer = new ByteSerializer();
-        static AltSerialize()
-        {
-            AltSerialize.Serializer.CacheObject(typeof(T));
-        }
 
         public AltSerialize()
         {
