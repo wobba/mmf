@@ -6,7 +6,7 @@ using mAdcOW.DataStructures;
 using mAdcOW.DataStructures.DictionaryBacking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace mAdcOW.DataStructures.Test
+namespace DiskStructuresTest
 {
     /// <summary>
     /// Summary description for DictionaryTestUnknownSizeBacking

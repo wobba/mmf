@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using mAdcOW.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace mAdcOW.DataStructures.Test
+namespace DataStructuresTest
 {
     public class TestClass
     {
@@ -221,39 +221,6 @@ namespace mAdcOW.DataStructures.Test
             {
                 Assert.AreEqual(new TestClass(i + 20), _dict[i]);
             }
-        }
-
-        [TestMethod]
-        public void When_iteration_over_the_dictionary_throw_exception_if_items_are_removed()
-        {
-            _dict[0] = new TestClass(0);
-            _dict[1] = new TestClass(1);
-            var enumerator = _dict.GetEnumerator();
-            enumerator.MoveNext();
-            _dict.Remove(0);
-            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
-        }
-
-        [TestMethod]
-        public void When_iteration_over_the_dictionary_throw_exception_if_items_are_added_by_accessor()
-        {
-            _dict[0] = new TestClass(0);
-            _dict[1] = new TestClass(1);
-            var enumerator = _dict.GetEnumerator();
-            enumerator.MoveNext();
-            _dict[2] = new TestClass(2);
-            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
-        }
-
-        [TestMethod]
-        public void When_iteration_over_the_dictionary_throw_exception_if_items_are_added()
-        {
-            _dict[0] = new TestClass(0);
-            _dict[1] = new TestClass(1);
-            var enumerator = _dict.GetEnumerator();
-            enumerator.MoveNext();
-            _dict.Add(2, new TestClass(2));
-            MyAssert.ThrowsException<InvalidOperationException>(() => { enumerator.MoveNext(); });
         }
     }
 }

@@ -16,7 +16,6 @@ namespace mAdcOW.DataStructures
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
         private readonly IDictionaryPersist<TKey, TValue> _persistHandler;
-        private int _version;
 
         public Dictionary(IDictionaryPersist<TKey, TValue> persistHandler)
         {
@@ -81,7 +80,6 @@ namespace mAdcOW.DataStructures
             try
             {
                 _persistHandler.Add(key, value);
-                _version++;
             }
             finally
             {
@@ -105,9 +103,7 @@ namespace mAdcOW.DataStructures
             _lock.EnterWriteLock();
             try
             {
-                bool success = _persistHandler.Remove(key);
-                if (success) _version++;
-                return success;
+                return _persistHandler.Remove(key);
             }
             finally
             {
@@ -169,7 +165,6 @@ namespace mAdcOW.DataStructures
                     {
                         _persistHandler.Add(key, value);
                     }
-                    _version++;
                 }
                 finally
                 {
@@ -226,7 +221,6 @@ namespace mAdcOW.DataStructures
             try
             {
                 _persistHandler.Clear();
-                _version++;
             }
             finally
             {
@@ -344,11 +338,9 @@ namespace mAdcOW.DataStructures
         ///<filterpriority>1</filterpriority>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            int currentVersion = _version;
-            for (IEnumerator<KeyValuePair<TKey, TValue>> enumerator = _persistHandler.GetEnumerator(); enumerator.MoveNext(); )
+            for (IEnumerator<KeyValuePair<TKey, TValue>> enumerator = _persistHandler.GetEnumerator();
+                 enumerator.MoveNext(); )
             {
-                if (currentVersion != _version)
-                    throw new InvalidOperationException("Collection modified during enumeration");
                 yield return enumerator.Current;
             }
         }

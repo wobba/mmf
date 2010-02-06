@@ -31,7 +31,6 @@ namespace mAdcOW.DataStructures
         protected ReaderWriterLockSlim ValueLock = new ReaderWriterLockSlim();
         protected ISerializeDeserialize<T> ValueSerializer;
         protected readonly IViewManager ViewManager;
-        private int _version;
         #endregion
 
         #region Properties
@@ -74,7 +73,7 @@ namespace mAdcOW.DataStructures
                 int threadId = Thread.CurrentThread.ManagedThreadId;
                 Stream s = ViewManager.GetView(threadId);
                 s.Position = value * _dataSize;
-            }
+            }            
         }
 
         public override string ToString()
@@ -181,7 +180,6 @@ namespace mAdcOW.DataStructures
                 viewStream = GrowViewAndGetNewStream(viewStream.Position, buffer.LongLength);
             }
             viewStream.Write(buffer, 0, bufferLength);
-            _version++;
         }
 
         private void WriteBufferToStream(Stream viewStream, byte b)
@@ -191,7 +189,6 @@ namespace mAdcOW.DataStructures
                 viewStream = GrowViewAndGetNewStream(viewStream.Position, 1);
             }
             viewStream.WriteByte(b);
-            _version++;
         }
 
         private bool NeedToGrowView(long streamPosition, long length)
@@ -319,13 +316,18 @@ namespace mAdcOW.DataStructures
 
         public IEnumerator<T> GetEnumerator()
         {
-            int currentVersion = _version;
-            Position = 0;
-            long iterLength = Length;
-            for (int i = 0; i < iterLength; i++)
+            ValueLock.EnterReadLock();
+            try
             {
-                if (currentVersion != _version) throw new InvalidOperationException("Collection modified during enumeration");
-                yield return ValueSerializer.BytesToObject(Read());
+                Position = 0;
+                for (int i = 0; i < Length; i++)
+                {
+                    yield return ValueSerializer.BytesToObject(Read());
+                }
+            }
+            finally
+            {
+                ValueLock.ExitReadLock();
             }
         }
 

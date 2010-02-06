@@ -1,5 +1,4 @@
 ﻿using System;
-using AltSerialize;
 
 namespace mAdcOW.Serializer
 {
@@ -9,24 +8,22 @@ namespace mAdcOW.Serializer
     /// <typeparam name="T"></typeparam>
     public class AltSerialize<T> : ISerializeDeserialize<T>
     {
-        private readonly ByteSerializer _serializer = new ByteSerializer();
-
-        public AltSerialize()
+        static AltSerialize()
         {
-            _serializer.CacheObject(typeof(T));
+            AltSerialize.Serializer.CacheObject(typeof(T));
         }
 
         #region ISerializeDeserialize<T> Members
 
         public byte[] ObjectToBytes(T data)
         {
-            byte[] bytes = _serializer.Serialize(data);
+            byte[] bytes = AltSerialize.Serializer.Serialize(data);
             return bytes;
         }
 
         public T BytesToObject( byte[] bytes )
         {
-            return (T)_serializer.Deserialize(bytes);
+            return (T)AltSerialize.Serializer.Deserialize(bytes);
         }
 
         public bool CanSerializeType()
