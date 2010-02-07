@@ -24,6 +24,14 @@ namespace mAdcOW.Serializer
             return result;
         }
 
+        public ISerializeDeserialize<T> GetSerializer(string name)
+        {
+            return (from pair in _dictionaryCache
+                    where pair.Value.GetType().AssemblyQualifiedName == name
+                    select pair.Value).FirstOrDefault();
+        }
+
+
         private ISerializeDeserialize<T> PickOptimalSerializer()
         {
             CompileAndRegisterUnsafeSerializer();
