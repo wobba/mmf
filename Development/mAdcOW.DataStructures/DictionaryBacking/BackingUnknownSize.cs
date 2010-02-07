@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using mAdcOW.Serializer;
 
 namespace mAdcOW.DataStructures.DictionaryBacking
@@ -9,8 +12,11 @@ namespace mAdcOW.DataStructures.DictionaryBacking
     public class BackingUnknownSize<TKey, TValue> : IDictionaryPersist<TKey, TValue>
     {
         private static readonly byte[] _emptyPosition = new byte[9];
-        private static ISerializeDeserialize<TKey> _keySerializer;
-        private static ISerializeDeserialize<TValue> _valueSerializer;
+        private static readonly Factory<TKey> _keyFactory = new Factory<TKey>();
+        private static readonly Factory<TValue> _valueFactory = new Factory<TValue>();
+
+        private static ISerializeDeserialize<TKey> _keySerializer = _keyFactory.GetSerializer();
+        private static ISerializeDeserialize<TValue> _valueSerializer = _valueFactory.GetSerializer();
         private readonly int _capacity;
 
         private Array<long> _hashCodeLookup;
@@ -22,36 +28,120 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private string _path;
         private int _defaultKeySize;
         private int _defaultValueSize;
+        private string _controlFile;
+        private string _hashFile;
+        private string _keyFile;
+        private string _valueFile;
+
 
         public BackingUnknownSize(string path, int capacity)
+            : this(path, capacity, false, string.Empty)
         {
-            _capacity = HashHelpers.GetPrime(capacity);
-            _path = path;
+        }
 
-            Factory<TKey> keyFactory = new Factory<TKey>();
-            Factory<TValue> valueFactory = new Factory<TValue>();
-            _keySerializer = keyFactory.GetSerializer();
-            _valueSerializer = valueFactory.GetSerializer();
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path">Folder to store working files</param>
+        /// <param name="capacity">Number of buckets for the hash</param>
+        /// <param name="keepFile">True = file will not be deleted upon exit</param>
+        /// <param name="dictionaryName">Unique name to differentiate collections</param>
+        public BackingUnknownSize(string path, int capacity, bool keepFile, string dictionaryName)
+        {
+            if (File.Exists(path)) throw new ArgumentException("path has to be a valid folder, not a file");
+            if (!Directory.Exists(path)) throw new ArgumentException("path has to be an existing folder");
+
+            _capacity = HashHelpers.GetPrime(capacity);
+
+            SetStorageFilenames(path, dictionaryName);
+
+            if (keepFile)
+            {
+                InitializeControlFile();
+            }
 
             SetDefaultKeyValueSize();
 
-            _hashCodeLookup = new Array<long>(_capacity, path, true);
+            _hashCodeLookup = new Array<long>(_capacity, _hashFile, true);
+            _keys = new ByteArray(_capacity * _defaultKeySize, _keyFile, true);
+            _values = new ByteArray(_capacity * _defaultValueSize, _valueFile, true);
 
-            _keys = new ByteArray(_capacity * _defaultKeySize, path, true);
-            _values = new ByteArray(_capacity * _defaultValueSize, path, true);
+            _hashCodeLookup.KeepFile = _keys.KeepFile = _values.KeepFile = keepFile;
+
+            InitDictionary();
+        }
+
+        private void SetStorageFilenames(string path, string dictionaryName)
+        {
+            if (string.IsNullOrEmpty(dictionaryName))
+            {
+                dictionaryName = Guid.NewGuid().ToString();
+            }
+            _path = path;
+            _controlFile = Path.Combine(path, dictionaryName + ".mmf");
+            _hashFile = Path.Combine(path, dictionaryName + ".hash");
+            _keyFile = Path.Combine(path, dictionaryName + ".key");
+            _valueFile = Path.Combine(path, dictionaryName + ".value");
+        }
+
+        private void InitializeControlFile()
+        {
+            if (File.Exists(_controlFile))
+            {
+                if (!File.Exists(_hashFile)) throw new FileNotFoundException("Hash file is missing");
+                if (!File.Exists(_keyFile)) throw new FileNotFoundException("Key file is missing");
+                if (!File.Exists(_valueFile)) throw new FileNotFoundException("Value file is missing");
+
+                string[] settings = File.ReadAllLines(_controlFile);
+
+                int ctrlCapacity = int.Parse(settings[0]);
+                if (ctrlCapacity != _capacity) throw new ArgumentException("capacity differes from existing file. " + _capacity + " != " + ctrlCapacity);
+
+
+                //TODO: iterate over serializers and compare on name - create method on the factory
+                _keySerializer = _keyFactory.GetSerializer(settings[1]);
+                if (_keySerializer == null) throw new InvalidOperationException("Could not find serializer: " + settings[1]);
+                _valueSerializer = _valueFactory.GetSerializer(settings[2]);
+                if (_valueSerializer == null) throw new InvalidOperationException("Could not find serializer: " + settings[2]);
+            }
+            else
+            {
+                if (File.Exists(_hashFile)) throw new InvalidOperationException("Hash file exists already");
+                if (File.Exists(_keyFile)) throw new FileNotFoundException("Key file exists already");
+                if (File.Exists(_valueFile)) throw new FileNotFoundException("Value file exists already");
+
+                using (var fileStream = File.CreateText(_controlFile))
+                {
+                    fileStream.WriteLine(_capacity.ToString());
+                    fileStream.WriteLine(_keySerializer.GetType().AssemblyQualifiedName);
+                    fileStream.WriteLine(_valueSerializer.GetType().AssemblyQualifiedName);
+                }
+            }
+        }
+
+        private void InitDictionary()
+        {
+            Trace.WriteLine("Initializing dictionary - reading existing values");
+            foreach (var kvp in this)
+            {
+                Count++;
+                if (Count % 100000 == 0)
+                {
+                    Trace.WriteLine("Items read: " + Count);
+                }
+            }
         }
 
         void SetDefaultKeyValueSize()
         {
-            if( default(TKey) != null )
+            if (default(TKey) != null)
                 _defaultKeySize = _keySerializer.ObjectToBytes(default(TKey)).Length;
             if (default(TValue) != null)
                 _defaultValueSize = _valueSerializer.ObjectToBytes(default(TValue)).Length;
-            
+
             if (_defaultKeySize == 0) _defaultKeySize = 40;
             if (_defaultValueSize == 0) _defaultValueSize = 40;
         }
-
 
         ~BackingUnknownSize()
         {
@@ -73,7 +163,14 @@ namespace mAdcOW.DataStructures.DictionaryBacking
                 if (_values != null)
                     _values.Dispose();
                 if (_hashCodeLookup != null)
+                {
+                    if (!_hashCodeLookup.KeepFile)
+                    {
+                        File.Delete(_controlFile);
+                    }
                     _hashCodeLookup.Dispose();
+                }
+
             }
         }
 
