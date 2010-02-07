@@ -56,6 +56,7 @@
     <Compile Include="MemoryMappedDictionaryTestClassValue.cs" />
     <Compile Include="MemoryMappedArrayTest.cs" />
     <Compile Include="MemoryMappedDictionaryTestPrimitiveKeyValue.cs" />
+    <Compile Include="MemoryMappedDictionaryTestLoadExistingFile.cs" />
     <Compile Include="MemoryMappedListTest.cs" />
     <Compile Include="MyAssert.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using mAdcOW.DataStructures;
 using mAdcOW.DataStructures.DictionaryBacking;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,47 +11,13 @@ namespace mAdcOW.DataStructures.Test
     [TestClass]
     public class DictionaryTestUnknownSizeBacking
     {
-        private TestContext testContextInstance;
-
         /// <summary>
         ///Gets or sets the test context which provides
         ///information about and functionality for the current test run.
         ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
+        public TestContext TestContext { get; set; }
 
-        #region Additional test attributes
-        //
-        // You can use the following additional attributes as you write your tests:
-        //
-        // Use ClassInitialize to run code before running the first test in the class
-        // [ClassInitialize()]
-        // public static void MyClassInitialize(TestContext testContext) { }
-        //
-        // Use ClassCleanup to run code after all tests in a class have run
-        // [ClassCleanup()]
-        // public static void MyClassCleanup() { }
-        //
-        // Use TestInitialize to run code before running each test 
-        // [TestInitialize()]
-        // public void MyTestInitialize() { }
-        //
-        // Use TestCleanup to run code after each test has run
-        // [TestCleanup()]
-        // public void MyTestCleanup() { }
-        //
-        #endregion
-
-        class Customer
+        private class Customer
         {
             public string Name { get; set; }
 
@@ -66,7 +29,7 @@ namespace mAdcOW.DataStructures.Test
             public override bool Equals(object obj)
             {
                 if (!(obj is Customer)) return false;
-                return string.Equals(Name, ((Customer)obj).Name);
+                return string.Equals(Name, ((Customer) obj).Name);
             }
         }
 
@@ -75,7 +38,7 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<string, string> backingFile = new BackingUnknownSize<string, string>(path, 2000000);
-            mAdcOW.DataStructures.Dictionary<string, string> dict = new mAdcOW.DataStructures.Dictionary<string, string>(backingFile);
+            Dictionary<string, string> dict = new Dictionary<string, string>(backingFile);
 
             string prevKey = null;
             string prevVal = null;
@@ -100,10 +63,10 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<Customer, string> backingFile = new BackingUnknownSize<Customer, string>(path, 100);
-            mAdcOW.DataStructures.Dictionary<Customer, string> dict = new mAdcOW.DataStructures.Dictionary<Customer, string>(backingFile);
+            Dictionary<Customer, string> dict = new Dictionary<Customer, string>(backingFile);
 
-            Customer c1 = new Customer { Name = "Mikael" };
-            Customer c2 = new Customer { Name = "Svenson" };
+            Customer c1 = new Customer {Name = "Mikael"};
+            Customer c2 = new Customer {Name = "Svenson"};
 
             dict.Add(c1, "test");
             dict.Add(c2, "test2");
@@ -118,11 +81,11 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<Customer, string> backingFile = new BackingUnknownSize<Customer, string>(path, 100);
-            mAdcOW.DataStructures.Dictionary<Customer, string> dict = new mAdcOW.DataStructures.Dictionary<Customer, string>(backingFile);
+            Dictionary<Customer, string> dict = new Dictionary<Customer, string>(backingFile);
 
-            Customer c1 = new Customer { Name = "Mikael" };
-            Customer c2 = new Customer { Name = "Svenson" };
-            Customer c3 = new Customer { Name = "Boss" };
+            Customer c1 = new Customer {Name = "Mikael"};
+            Customer c2 = new Customer {Name = "Svenson"};
+            Customer c3 = new Customer {Name = "Boss"};
 
             dict.Add(c1, "test");
             dict.Add(c2, "test2");
@@ -145,11 +108,11 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<Customer, string> backingFile = new BackingUnknownSize<Customer, string>(path, 100);
-            mAdcOW.DataStructures.Dictionary<Customer, string> dict = new mAdcOW.DataStructures.Dictionary<Customer, string>(backingFile);
+            Dictionary<Customer, string> dict = new Dictionary<Customer, string>(backingFile);
 
-            Customer c1 = new Customer { Name = "Mikael" };
-            Customer c2 = new Customer { Name = "Svenson" };
-            Customer c3 = new Customer { Name = "Boss" };
+            Customer c1 = new Customer {Name = "Mikael"};
+            Customer c2 = new Customer {Name = "Svenson"};
+            Customer c3 = new Customer {Name = "Boss"};
 
             dict.Add(c1, "test");
 
@@ -177,11 +140,11 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<Customer, string> backingFile = new BackingUnknownSize<Customer, string>(path, 100);
-            mAdcOW.DataStructures.Dictionary<Customer, string> dict = new mAdcOW.DataStructures.Dictionary<Customer, string>(backingFile);
+            Dictionary<Customer, string> dict = new Dictionary<Customer, string>(backingFile);
 
-            Customer c1 = new Customer { Name = "Mikael" };
-            Customer c2 = new Customer { Name = "Svenson" };
-            Customer c3 = new Customer { Name = "Boss" };
+            Customer c1 = new Customer {Name = "Mikael"};
+            Customer c2 = new Customer {Name = "Svenson"};
+            Customer c3 = new Customer {Name = "Boss"};
 
             dict.Add(c1, "Mikael");
             dict.Add(c2, "Svenson");
@@ -201,7 +164,7 @@ namespace mAdcOW.DataStructures.Test
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
             BackingUnknownSize<int, int> backingFile = new BackingUnknownSize<int, int>(path, 100);
-            mAdcOW.DataStructures.Dictionary<int, int> dict = new mAdcOW.DataStructures.Dictionary<int, int>(backingFile);
+            Dictionary<int, int> dict = new Dictionary<int, int>(backingFile);
 
             dict.Add(1, 1);
             dict.Add(2, 2);
