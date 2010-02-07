@@ -24,6 +24,15 @@ namespace mAdcOW.DataStructures.Test
             _dict2 = new mAdcOW.DataStructures.Dictionary<Customer, Customer>(path);
         }
 
+        [TestCleanup]
+        public void CleanupDictionary()
+        {
+            _dict = null;
+            _dict2 = null;
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
         class Customer
         {
             public string Name { get; set; }

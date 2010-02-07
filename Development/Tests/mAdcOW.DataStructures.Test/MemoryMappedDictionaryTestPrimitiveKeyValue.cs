@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using mAdcOW.DataStructures;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace mAdcOW.DataStructures.Test
@@ -13,16 +12,16 @@ namespace mAdcOW.DataStructures.Test
     {
         public TestContext TestContext { get; set; }
 
-        private static mAdcOW.DataStructures.Dictionary<int, int> _dict;
+        private static Dictionary<int, int> _dict;
 
-        [ClassInitialize()]
+        [ClassInitialize]
         public static void InitializeDictionary(TestContext testContext)
         {
             string path = AppDomain.CurrentDomain.BaseDirectory;
-            _dict = new mAdcOW.DataStructures.Dictionary<int, int>(path);
+            _dict = new Dictionary<int, int>(path);
         }
 
-        [TestInitialize()]
+        [TestInitialize]
         public void ClearDictionary()
         {
             _dict.Clear();
@@ -44,18 +43,18 @@ namespace mAdcOW.DataStructures.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(KeyNotFoundException))]
+        [ExpectedException(typeof (KeyNotFoundException))]
         public void When_retrieving_a_non_existing_key_throw_KeyNotFoundException()
         {
             int a = _dict[0];
         }
 
         [TestMethod]
-        [ExpectedException(typeof(KeyNotFoundException))]
+        [ExpectedException(typeof (KeyNotFoundException))]
         public void When_deleting_a_key_thrown_KeyNotFoundException_when_accessing_it_afterwards()
         {
             _dict.Add(345, 345);
-            bool removed =_dict.Remove(345);
+            bool removed = _dict.Remove(345);
             Assert.IsTrue(removed);
             Assert.AreEqual(0, _dict.Count);
             int a = _dict[345];
@@ -123,7 +122,7 @@ namespace mAdcOW.DataStructures.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentNullException))]
+        [ExpectedException(typeof (ArgumentNullException))]
         public void When_copyto_a_null_array_throw_exception()
         {
             _dict[12] = 12;
@@ -133,7 +132,7 @@ namespace mAdcOW.DataStructures.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        [ExpectedException(typeof (ArgumentOutOfRangeException))]
         public void When_copyto_and_index_is_outside_array_size_throw_exception()
         {
             _dict[12] = 12;
@@ -143,7 +142,7 @@ namespace mAdcOW.DataStructures.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentOutOfRangeException))]
+        [ExpectedException(typeof (ArgumentOutOfRangeException))]
         public void When_copyto_and_index_is_negative_throw_exception()
         {
             _dict[12] = 12;
@@ -153,7 +152,7 @@ namespace mAdcOW.DataStructures.Test
         }
 
         [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [ExpectedException(typeof (ArgumentException))]
         public void When_copyto_and_array_is_smaller_than_dictionary_throw_exception()
         {
             _dict[12] = 12;
