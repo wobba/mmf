@@ -53,7 +53,7 @@ namespace Winterdom.IO.FileMap
                     {
                         return base.Message + " Not enough address space available (" + Win32ErrorCode + ")";
                     }
-                    return base.Message + " (" + Win32ErrorCode + ")";
+                    return base.Message + " (" + Win32ErrorCode.ToString("X") + ")";
                 }
 
                 return base.Message;
