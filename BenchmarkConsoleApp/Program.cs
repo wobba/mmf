@@ -17,9 +17,9 @@ namespace BenchmarkConsoleApp
             TextWriterTraceListener tr1 = new TextWriterTraceListener(Console.Out);
             Debug.Listeners.Add(tr1);
 
-            SingelThread_HashInMemory();
+            //SingelThread_HashInMemory();
             SingelThread_HashOnDisk();
-            Threaded_HashInMemory();
+            //Threaded_HashInMemory();
             Threaded_HashOnDisk();
             return 0;
         }
@@ -57,7 +57,7 @@ namespace BenchmarkConsoleApp
             Console.WriteLine("Thread Pool has been drained (Event fired)");
             Console.WriteLine(sw.Elapsed);
         }
-
+        /*
         private static void Threaded_HashInMemory()
         {
             Console.WriteLine("Threaded_HashInMemory");
@@ -91,6 +91,7 @@ namespace BenchmarkConsoleApp
             Console.WriteLine("Thread Pool has been drained (Event fired)");
             Console.WriteLine(sw.Elapsed);
         }
+        */
 
         private static void SingelThread_HashOnDisk()
         {
@@ -111,6 +112,7 @@ namespace BenchmarkConsoleApp
             Console.WriteLine(sw.Elapsed);
         }
 
+        /*
         private static void SingelThread_HashInMemory()
         {
             Console.WriteLine("SingelThread_HashInMemory");
@@ -129,5 +131,6 @@ namespace BenchmarkConsoleApp
             sw.Stop();
             Console.WriteLine(sw.Elapsed);
         }
+        */ 
     }
 }
