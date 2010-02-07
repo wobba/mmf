@@ -35,10 +35,18 @@ namespace mAdcOW.DataStructures
         #endregion
 
         #region Properties
-        /// <summary>
-        /// The unique name of the file stored on disk
-        /// </summary>
-        private string UniqueName { get; set; }
+
+        public bool KeepFile
+        {
+            get
+            {
+                return ViewManager.KeepFile;
+            }
+            set
+            {
+                ViewManager.KeepFile = value;
+            }
+        }
 
         /// <summary>
         /// Allow array to automatically grow if you access an indexer larger than the starting size
@@ -119,11 +127,19 @@ namespace mAdcOW.DataStructures
             ValueSerializer = serializer;
             ViewManager = viewManager;
 
-            UniqueName = "mmf-" + Guid.NewGuid();
+            string fileName;
+            if(File.Exists(path) || Path.GetExtension(path).Length > 0)
+            {
+                fileName = path;
+            }
+            else
+            {
+                fileName = Path.Combine(path, "mmf-" + Guid.NewGuid() + ".bin");
+            }            
             AutoGrow = autoGrow;
 
             InitWorkerBuffers();
-            string fileName = Path.Combine(path, UniqueName + ".bin");
+
             ViewManager.Initialize(fileName, capacity, _dataSize);
         }
 

@@ -23,19 +23,41 @@ namespace mAdcOW.DataStructures
             _persistHandler = persistHandler;
         }
 
+        /// <summary>
+        /// Initialize a new dictionary. Default bucket size is 20000.
+        /// </summary>
+        /// <param name="path">Folder to store files in</param>
         public Dictionary(string path)
-            : this(new BackingUnknownSize<TKey, TValue>(path, 20000))
+            : this(new BackingUnknownSize<TKey, TValue>(path, 20000, false, string.Empty))
         {
         }
 
+        /// <summary>
+        /// Initialize a new dictionary.
+        /// </summary>
+        /// <param name="path">Folder to store files in</param>
+        /// <param name="capacity">Number of buckets for the hash</param>
         public Dictionary(string path, int capacity)
-            : this(new BackingUnknownSize<TKey, TValue>(path, capacity))
+            : this(new BackingUnknownSize<TKey, TValue>(path, capacity, false, string.Empty))
+        {
+        }
+
+        /// <summary>
+        /// Initialize a new dictionary.
+        /// </summary>
+        /// <param name="path">Folder to store files in</param>
+        /// <param name="capacity">Number of buckets for the hash</param>
+        /// <param name="keepFile">True = file will not be deleted upon exit</param>
+        /// <param name="dictionaryName">Unique name to differentiate collections</param>
+        public Dictionary(string path, int capacity, bool keepFile, string dictionaryName)
+            : this(new BackingUnknownSize<TKey, TValue>(path, capacity, keepFile, dictionaryName ))
         {
         }
 
         ~Dictionary()
         {
-            _persistHandler.Dispose();
+            if(_persistHandler != null)
+                _persistHandler.Dispose();
         }
 
         public bool IsStruct { get; set; }

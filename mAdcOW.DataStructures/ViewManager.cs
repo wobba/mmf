@@ -101,6 +101,8 @@ namespace mAdcOW.DataStructures
             Dispose();
         }
 
+        public bool KeepFile { get; set; }
+
         #endregion
 
         ~ViewManager()
@@ -245,7 +247,7 @@ namespace mAdcOW.DataStructures
         {
             try
             {
-                if (_deleteFile)
+                if (_deleteFile && !KeepFile)
                 {
                     if (File.Exists(_fileName))
                     {

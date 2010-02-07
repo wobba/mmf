@@ -42,5 +42,10 @@ namespace mAdcOW.DataStructures
         /// Remove the backing file
         /// </summary>
         void CleanUp();
+
+        /// <summary>
+        /// Keep file on exit
+        /// </summary>
+        bool KeepFile { get; set; }
     }
 }
