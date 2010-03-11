@@ -263,6 +263,9 @@ namespace mAdcOW.DataStructures
             }
         }
 
+        /// <summary>
+        /// Dispose all allocated views
+        /// </summary>
         private void DisposeAllViews()
         {
             System.Collections.Generic.List<int> cleanedThreads = new System.Collections.Generic.List<int>(_viewThreadPool.Count);

@@ -4,6 +4,12 @@ namespace mAdcOW.DataStructures
 {
     public static class ByteArrayCompare
     {
+        /// <summary>
+        /// Compare the values of two byte arrays
+        /// </summary>
+        /// <param name="arr1"></param>
+        /// <param name="arr2"></param>
+        /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.MayFail)]
         public static unsafe bool UnSafeEquals(byte[] arr1, byte[] arr2)
         {

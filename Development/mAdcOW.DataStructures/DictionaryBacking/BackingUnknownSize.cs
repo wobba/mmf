@@ -9,6 +9,12 @@ using mAdcOW.Serializer;
 
 namespace mAdcOW.DataStructures.DictionaryBacking
 {
+    /// <summary>
+    /// Persist a Dictionary on disk. One file for hashes, one for keys and one for values.
+    /// Keys and values can be of variable sizes.
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     public class BackingUnknownSize<TKey, TValue> : IDictionaryPersist<TKey, TValue>
     {
         private static readonly byte[] _emptyPosition = new byte[9];
@@ -34,6 +40,11 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private string _valueFile;
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="capacity">Number of expected items in the dictionary</param>
         public BackingUnknownSize(string path, int capacity)
             : this(path, capacity, false, string.Empty)
         {
@@ -183,6 +194,10 @@ namespace mAdcOW.DataStructures.DictionaryBacking
 
         #region Implementation of IEnumerable
 
+        /// <summary>
+        /// Enumerate over the dictionary
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             foreach (long firstKeyPosition in _hashCodeLookup)
@@ -203,6 +218,10 @@ namespace mAdcOW.DataStructures.DictionaryBacking
             }
         }
 
+        /// <summary>
+        /// Enumerate over the dictionary
+        /// </summary>
+        /// <returns></returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();

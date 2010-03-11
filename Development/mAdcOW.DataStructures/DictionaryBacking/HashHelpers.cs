@@ -23,7 +23,11 @@ namespace mAdcOW.DataStructures.DictionaryBacking
                                                         0x5b8b6f, 0x6dda89
                                                     };
 
-        // Methods
+        /// <summary>
+        /// Get the next prime number above the passed value
+        /// </summary>
+        /// <param name="min"></param>
+        /// <returns></returns>
         [ReliabilityContract(Consistency.WillNotCorruptState, Cer.Success)]
         internal static int GetPrime(int min)
         {
