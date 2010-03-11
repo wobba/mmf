@@ -7,6 +7,11 @@ using mAdcOW.Serializer;
 
 namespace mAdcOW.DataStructures
 {
+    /// <summary>
+    /// Store hash values in memory.
+    /// </summary>
+    /// <typeparam name="TKey"></typeparam>
+    /// <typeparam name="TValue"></typeparam>
     public class DictionaryPersist<TKey, TValue> : IDictionaryPersist<TKey, TValue>
     {
         private static ISerializeDeserialize<TKey> _keySerializer;
@@ -22,6 +27,11 @@ namespace mAdcOW.DataStructures
         private long _largestSeenKeyPosition;
         private long _largestSeenValuePosition;
 
+        /// <summary>
+        /// Instantiate a new backing store
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="capacity">Expected number of entries</param>
         public DictionaryPersist(string path, int capacity)
         {
             _fileOffsets = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<KeyValueFileOffset>>(capacity);
@@ -37,6 +47,10 @@ namespace mAdcOW.DataStructures
             _values = new Array<byte>(1000, path, true);
         }
 
+        /// <summary>
+        /// Instantiate a new backing store
+        /// </summary>
+        /// <param name="path"></param>
         public DictionaryPersist(string path)
             : this(path, 1000000)
         {
@@ -248,6 +262,11 @@ namespace mAdcOW.DataStructures
             return -1;
         }
 
+        /// <summary>
+        /// Persist key data
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="offset"></param>
         private void WriteKey(TKey key, KeyValueFileOffset offset)
         {
             long writePostion = _keyDataSize == -1 ? offset.KeyPosition : offset.KeyPosition * _keyDataSize;
@@ -266,6 +285,11 @@ namespace mAdcOW.DataStructures
             CheckForMaxFileSizeOn32BitSystem(_largestSeenKeyPosition);
         }
 
+        /// <summary>
+        /// Persist value data
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="offset"></param>
         private void WriteValue(TValue value, KeyValueFileOffset offset)
         {
             long writePostion = _valueDataSize == -1 ? offset.ValuePosition : offset.ValuePosition * _valueDataSize;
