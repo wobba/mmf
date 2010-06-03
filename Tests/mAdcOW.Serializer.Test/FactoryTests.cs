@@ -165,6 +165,14 @@ namespace mAdcOW.Serializer.Test
         }
 
         [TestMethod]
+        public void When_sending_in_a_byte_array_it_should_return_a_serializer()
+        {
+            Factory<byte[]> factory = new Factory<byte[]>();
+            var actual = factory.GetSerializer();
+            Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<byte[]>));
+        }
+
+        [TestMethod]
         public void Validate_MarshalSeriazlier()
         {
             SimpleStruct data = new SimpleStruct();

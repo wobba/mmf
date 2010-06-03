@@ -252,6 +252,31 @@ namespace mAdcOW.Serializer
         #endregion
     }
 
+    public class PrimitiveSerializerByteArray : ISerializeDeserialize<byte[]>
+    {
+        #region ISerializeDeserialize<byte[]> Members
+
+        [CLSCompliant(false)]
+        public byte[] ObjectToBytes(byte[] data)
+        {
+            return data;
+        }
+
+        [CLSCompliant(false)]
+        public byte[] BytesToObject(byte[] bytes)
+        {
+            return bytes;
+        }
+
+        public bool CanSerializeType()
+        {
+            return true;
+        }
+
+        #endregion
+    }
+
+
     public class PrimitiveSerializerString : ISerializeDeserialize<string>
     {
         #region ISerializeDeserialize<ushort> Members
