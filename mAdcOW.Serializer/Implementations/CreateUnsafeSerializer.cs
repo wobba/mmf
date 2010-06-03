@@ -94,7 +94,8 @@ namespace mAdcOW.Serializer
                                                      CompilerOptions = "/optimize /unsafe"
                                                  };
             cParameters.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
-            cParameters.ReferencedAssemblies.Add(_type.Assembly.Location);
+            if(!_type.Assembly.FullName.StartsWith("mscorlib"))
+                cParameters.ReferencedAssemblies.Add(_type.Assembly.Location);
             return cParameters;
         }
 
