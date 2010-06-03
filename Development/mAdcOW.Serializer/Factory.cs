@@ -128,6 +128,21 @@ namespace mAdcOW.Serializer
             {
                 args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
             }
+            else if (typeof(T) == typeof(byte[]))
+            {
+                byte[] test = new byte[100];
+                T classInstance = (T)(object)test;
+                Stopwatch sw = Stopwatch.StartNew();
+                int count = 0;
+                while (sw.ElapsedMilliseconds < 500)
+                {
+                    byte[] bytes = serDeser.ObjectToBytes(classInstance);
+                    serDeser.BytesToObject(bytes);
+                    count++;
+                }
+                sw.Stop();
+                return count;
+            }
             try
             {
                 T classInstance = (T)Activator.CreateInstance(typeof(T), args);
@@ -142,7 +157,7 @@ namespace mAdcOW.Serializer
                 sw.Stop();
                 return count;
             }
-            catch (MissingMethodException)
+            catch (MissingMethodException e)
             {
                 // Missing default constructor
                 return 0;
