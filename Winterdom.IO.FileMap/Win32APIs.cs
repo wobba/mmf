@@ -28,6 +28,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace Winterdom.IO.FileMap
 {
@@ -47,7 +48,7 @@ namespace Winterdom.IO.FileMap
 
       [ DllImport("kernel32", SetLastError=true, CharSet=CharSet.Auto) ]
       public static extern IntPtr CreateFileMapping ( 
-         IntPtr hFile, IntPtr lpAttributes, int flProtect, 
+         SafeFileHandle hFile, IntPtr lpAttributes, int flProtect, 
          int dwMaximumSizeLow, int dwMaximumSizeHigh,
          String lpName );
 

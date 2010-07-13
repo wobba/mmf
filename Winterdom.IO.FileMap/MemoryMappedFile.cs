@@ -1,4 +1,3 @@
-
 //
 // MemoryMappedFile.cs
 //    
@@ -9,8 +8,6 @@
 //   Original concept and implementation
 // COPYRIGHT (C) 2006, Steve Simpson (s.simpson64@gmail.com)
 //   Modifications to *improve* coupling with MapViewStream
-// COPYRIGHT (C) 2008, Mikael Svenson (mikaels@powertech.no)
-//   Simplified constructors since we will map the whole file
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -28,14 +25,12 @@
 //
 
 using System;
-using System.Data;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
 namespace Winterdom.IO.FileMap
 {
-
     /// <summary>
     ///   Specifies page protection for the mapped file
     ///   These correspond to the PAGE_XXX set of flags
@@ -91,42 +86,41 @@ namespace Winterdom.IO.FileMap
         private MapProtection _protection = MapProtection.PageNone;
 
         private string _fileName = "";
-        public string FileName { get { return _fileName; } }
+
+        public string FileName
+        {
+            get { return _fileName; }
+        }
 
         private long _maxSize;
-        private readonly bool _is64bit;
 
-        public long MaxSize { get { return _maxSize; } }
+        public long MaxSize
+        {
+            get { return _maxSize; }
+        }
 
         #region Constants
 
-        private const int GENERIC_READ = unchecked((int)0x80000000);
-        private const int GENERIC_WRITE = unchecked((int)0x40000000);
+        private const int GENERIC_READ = unchecked((int) 0x80000000);
+        private const int GENERIC_WRITE = unchecked(0x40000000);
         private const int OPEN_ALWAYS = 4;
         private static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
         private static readonly IntPtr NULL_HANDLE = IntPtr.Zero;
 
         #endregion // Constants
 
-        #region Properties
         public bool IsOpen
         {
             get { return (_hMap != NULL_HANDLE); }
         }
-
-        public bool Is64bit
-        {
-            get { return _is64bit; }
-        }
-        #endregion
 
         /// <summary>
         /// Default constructor
         /// </summary>
         private MemoryMappedFile()
         {
-            _is64bit = IntPtr.Size == 8;
         }
+
         /// <summary>
         /// Finalizer
         /// </summary>
@@ -189,7 +183,7 @@ namespace Winterdom.IO.FileMap
         /// <returns>The memory mapped file instance</returns>
         public static MemoryMappedFile
             Create(string fileName, MapProtection protection,
-                              long maxSize)
+                   long maxSize)
         {
             return Create(fileName, protection, maxSize, null);
         }
@@ -207,14 +201,13 @@ namespace Winterdom.IO.FileMap
         /// <returns>The memory mapped file instance</returns>
         public static MemoryMappedFile
             Create(string fileName, MapProtection protection,
-                              long maxSize, String name)
+                   long maxSize, String name)
         {
             MemoryMappedFile map = new MemoryMappedFile();
-            if (!map.Is64bit && maxSize > uint.MaxValue)
-                throw new ConstraintException("32bit systems support max size of 4gb.");
 
             // open file first
             IntPtr hFile = INVALID_HANDLE_VALUE;
+            SafeFileHandle handle = null;
 
             if (!string.IsNullOrEmpty(fileName))
             {
@@ -222,7 +215,10 @@ namespace Winterdom.IO.FileMap
                 {
                     if (!File.Exists(fileName))
                     {
-                        throw new Exception(string.Format("Winterdom.IO.FileMap.MemoryMappedFile.Create - \"{0}\" does not exist ==> Unable to map entire file", fileName));
+                        throw new Exception(
+                            string.Format(
+                                "Winterdom.IO.FileMap.MemoryMappedFile.Create - \"{0}\" does not exist ==> Unable to map entire file",
+                                fileName));
                     }
 
                     FileInfo backingFileInfo = new FileInfo(fileName);
@@ -230,7 +226,10 @@ namespace Winterdom.IO.FileMap
 
                     if (maxSize == 0)
                     {
-                        throw new Exception(string.Format("Winterdom.IO.FileMap.MemoryMappedFile.Create - \"{0}\" is zero bytes ==> Unable to map entire file", fileName));
+                        throw new Exception(
+                            string.Format(
+                                "Winterdom.IO.FileMap.MemoryMappedFile.Create - \"{0}\" is zero bytes ==> Unable to map entire file",
+                                fileName));
                     }
                 }
 
@@ -238,35 +237,35 @@ namespace Winterdom.IO.FileMap
                 // we'll always need generic read access
                 int desiredAccess = GENERIC_READ;
                 if ((protection == MapProtection.PageReadWrite) ||
-                      (protection == MapProtection.PageWriteCopy))
+                    (protection == MapProtection.PageWriteCopy))
                 {
                     desiredAccess |= GENERIC_WRITE;
                 }
 
                 // open or create the file
                 // if it doesn't exist, it gets created
-                hFile = Win32MapApis.CreateFile(
-                            fileName, desiredAccess, 0,
-                            IntPtr.Zero, OPEN_ALWAYS, 0, IntPtr.Zero
-                          );
-                if (hFile == INVALID_HANDLE_VALUE)
+                //hFile = Win32MapApis.CreateFile(
+                //    fileName, desiredAccess, 0,
+                //    IntPtr.Zero, OPEN_ALWAYS, 0, IntPtr.Zero
+                //    );
+                FileStream fileStream = File.Open(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite,FileShare.ReadWrite);
+                handle = fileStream.SafeFileHandle;
+                
+                if( handle == null || handle.IsInvalid)
+                //if (hFile == INVALID_HANDLE_VALUE)
                     throw new FileMapIOException(Marshal.GetHRForLastWin32Error());
-
-                //SafeFileHandle handle = new SafeFileHandle(hFile,true);
-                //NTFS.Sparse.SparseFile.MarkSparse(handle);
-
 
                 map._fileName = fileName;
             }
 
             map._hMap = Win32MapApis.CreateFileMapping(
-                        hFile, IntPtr.Zero, (int)protection,
-                        (int)((maxSize >> 32) & 0xFFFFFFFF),
-                        (int)(maxSize & 0xFFFFFFFF), name
-                    );
+                handle, IntPtr.Zero, (int) protection,
+                (int) ((maxSize >> 32) & 0xFFFFFFFF),
+                (int) (maxSize & 0xFFFFFFFF), name
+                );
 
             // close file handle, we don't need it
-            if (hFile != INVALID_HANDLE_VALUE) Win32MapApis.CloseHandle(hFile);
+            //if (hFile != INVALID_HANDLE_VALUE) Win32MapApis.CloseHandle(hFile);
             if (map._hMap == NULL_HANDLE)
                 throw new FileMapIOException(Marshal.GetHRForLastWin32Error());
 
@@ -286,14 +285,12 @@ namespace Winterdom.IO.FileMap
         /// <returns>The memory mapped file instance</returns>
         public static MemoryMappedFile Open(MapAccess access, String name)
         {
-            MemoryMappedFile map = new MemoryMappedFile
-                                       {
-                                           _hMap = Win32MapApis.OpenFileMapping((int) access, false, name)
-                                       };
+            MemoryMappedFile map = new MemoryMappedFile();
 
+            map._hMap = Win32MapApis.OpenFileMapping((int) access, false, name);
             if (map._hMap == NULL_HANDLE)
                 throw new FileMapIOException(Marshal.GetHRForLastWin32Error());
-            map._maxSize = -1; // debug unknown
+            map._maxSize = -1; // sws debug unknown
             return map;
         }
 
@@ -312,23 +309,32 @@ namespace Winterdom.IO.FileMap
             if (!IsOpen)
                 throw new ObjectDisposedException("Winterdom.IO.FileMap.MemoryMappedFile.MapView - MMF already closed");
 
-            // Throws OverflowException if (a) this is a 32-bit platform AND (b) size is out of bounds (ie. int bounds) with respect to this platform
-            IntPtr mapSize = new IntPtr(size); 
+            IntPtr baseAddress = IntPtr.Zero;
+            IntPtr mapSize = new IntPtr(size);
+                // sws note Throws OverflowException if (a) this is a 32-bit platform AND (b) size is out of bounds (ie. int bounds) with respect to this platform
 
-            IntPtr baseAddress = Win32MapApis.MapViewOfFile(
-              _hMap, (int)access,
-              (int)((offset >> 32) & 0xFFFFFFFF),
-              (int)(offset & 0xFFFFFFFF), mapSize
-              );
+            baseAddress = Win32MapApis.MapViewOfFile(
+                _hMap, (int) access,
+                (int) ((offset >> 32) & 0xFFFFFFFF),
+                (int) (offset & 0xFFFFFFFF), mapSize
+                );
 
             if (baseAddress == IntPtr.Zero)
                 throw new FileMapIOException(Marshal.GetHRForLastWin32Error());
 
             return baseAddress;
-
         }
 
-        public MapViewStream MapAsStream()
+        /// <summary>
+        ///   Map a view of the file mapping object
+        ///   This returns a stream, giving you easy access to the memory,
+        ///   as you can use StreamReaders and StreamWriters on top of it
+        /// </summary>
+        /// <param name="access">desired access to the view</param>
+        /// <param name="offset">offset of the file mapping object to 
+        ///            start view at</param>
+        /// <param name="size">size of the view</param>
+        public MapViewStream MapViewAsStream(long offset, long size, long maxViewSize)
         {
             if (!IsOpen)
                 throw new ObjectDisposedException("Winterdom.IO.FileMap.MemoryMappedFile.MapView - MMF already closed");
@@ -337,7 +343,33 @@ namespace Winterdom.IO.FileMap
             // Don't know what to do about FILE_MAP_COPY et al
 
             bool isWriteable = (_protection & MapProtection.PageReadWrite) == MapProtection.PageReadWrite;
-            return new MapViewStream(this, MaxSize, isWriteable);
+            return new MapViewStream(this, offset, size, isWriteable, maxViewSize);
+        }
+
+        public MapViewStream MapViewAsStream(long offset, long size)
+        {
+            return MapViewAsStream(offset, size, MapViewStream.DEF_VIEW_SIZE);
+        }
+
+        public MapViewStream MapAsStream(long maxViewSize)
+        {
+            if (!IsOpen)
+                throw new ObjectDisposedException(
+                    "Winterdom.IO.FileMap.MemoryMappedFile.MapAsStream - MMF already closed");
+
+            // sws what do we do when the user creates a file mapping of the system paging file
+            // do you know how to get its size
+
+            if (FileName == "")
+                throw new Exception(
+                    "Winterdom.IO.FileMap.MemoryMappedFile.MapAsStream - System paging file cannot be mapped as stream");
+
+            return MapViewAsStream(0, MaxSize, maxViewSize);
+        }
+
+        public MapViewStream MapAsStream()
+        {
+            return MapAsStream(MapViewStream.DEF_VIEW_SIZE);
         }
 
         public void UnMapView(IntPtr mapBaseAddr)
@@ -350,16 +382,16 @@ namespace Winterdom.IO.FileMap
             UnMapView(mappedViewStream.ViewBaseAddr);
         }
 
-        public void Flush(IntPtr viewBaseAddr)
+        public void Flush(IntPtr viewBaseAddr, long length)
         {
-            // Throws OverflowException if (a) this is a 32-bit platform AND (b) size is out of bounds (ie. int bounds) with respect to this platform
-            IntPtr flushLength = new IntPtr(MaxSize);
+            IntPtr flushLength = new IntPtr(length);
+                // sws note Throws OverflowException if (a) this is a 32-bit platform AND (b) size is out of bounds (ie. int bounds) with respect to this platform
             Win32MapApis.FlushViewOfFile(viewBaseAddr, flushLength);
         }
 
         public void Flush(MapViewStream mappedViewStream)
         {
-            Flush(mappedViewStream.ViewBaseAddr);
+            Flush(mappedViewStream.ViewBaseAddr, mappedViewStream.ViewSize);
         }
 
         #region IDisposable implementation
@@ -380,6 +412,9 @@ namespace Winterdom.IO.FileMap
         }
 
         #endregion // IDisposable implementation
+    }
 
-    }  // class MemoryMappedFile
-} // namespace Winterdom.IO.FileMap
+    // class MemoryMappedFile
+}
+
+// namespace Winterdom.IO.FileMap
