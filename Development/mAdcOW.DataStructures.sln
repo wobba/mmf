@@ -1,18 +1,18 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Winterdom.IO.FileMap", "Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj", "{15DDC900-49FE-4212-9ED1-48F626D1FB86}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EACFCBD7-D400-4055-8A1A-F53A2C66305D}"
 	ProjectSection(SolutionItems) = preProject
 		lgpl-2.1.txt = lgpl-2.1.txt
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{F6131682-9914-474C-AB44-CF41259B187C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Winterdom.IO.FileMap", "Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj", "{15DDC900-49FE-4212-9ED1-48F626D1FB86}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltSerialize", "AltSerialize\AltSerialize.csproj", "{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer", "mAdcOW.Serializer\mAdcOW.Serializer.csproj", "{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{F6131682-9914-474C-AB44-CF41259B187C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.DataStructures", "mAdcOW.DataStructures\mAdcOW.DataStructures.csproj", "{96B4A787-61EA-413C-8DA2-C216C6256094}"
 EndProject
@@ -26,9 +26,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenchmarkConsoleApp", "Benc
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 8
+		SccNumberOfProjects = 9
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs03.codeplex.com/
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs03
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = Winterdom.IO.FileMap\\Winterdom.IO.FileMap.csproj
 		SccProjectName1 = Winterdom.IO.FileMap
@@ -53,6 +53,9 @@ Global
 		SccProjectUniqueName7 = BenchmarkConsoleApp\\BenchmarkConsoleApp.csproj
 		SccProjectName7 = BenchmarkConsoleApp
 		SccLocalPath7 = BenchmarkConsoleApp
+		SccProjectUniqueName8 = ..\\..\\..\\Users\\msvenson\\Documents\\Visual\u0020Studio\u00202008\\Projects\\SparseFileTest\\NTFS.Sparse\\NTFS.Sparse.csproj
+		SccProjectName8 = NTFS.Sparse
+		SccLocalPath8 = ..\\..\\..\\Users\\msvenson\\Documents\\Visual\u0020Studio\u00202008\\Projects\\SparseFileTest\\NTFS.Sparse
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
