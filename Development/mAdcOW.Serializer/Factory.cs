@@ -12,6 +12,7 @@ namespace mAdcOW.Serializer
         private static readonly Dictionary<Type, ISerializeDeserialize<T>> _dictionaryCache =
             new Dictionary<Type, ISerializeDeserialize<T>>();
 
+       
         public ISerializeDeserialize<T> GetSerializer()
         {
             ISerializeDeserialize<T> result;
@@ -40,8 +41,10 @@ namespace mAdcOW.Serializer
             listOfSerializers.AddRange(GetListOfImplementedSerializers());
 
             var benchmarkTimes = BenchmarkSerializers(listOfSerializers);
-            if (benchmarkTimes.Count == 0) throw new SerializerException("No serializer available for the type");
-
+            if (benchmarkTimes.Count == 0)
+            {  
+               throw new SerializerException("No serializer available for the type");
+            }
             return benchmarkTimes.Last().Value;
         }
 
@@ -66,7 +69,11 @@ namespace mAdcOW.Serializer
                               from interfaceType in genericType.GetInterfaces()
                                   .Where(
                                   iType =>
-                                  (iType.Name == interfaceGenricType.Name && genericType.IsGenericTypeDefinition))
+                                  (iType.Name == interfaceGenricType.Name && 
+                                   genericType.IsGenericTypeDefinition &&
+                                   //Added check on Abstract classes for ChangedID#1
+                                   !genericType.IsAbstract
+                                  ))
                               select genericType;
             return serializers.ToList();
         }
@@ -77,7 +84,9 @@ namespace mAdcOW.Serializer
             var serializers = from assembly in AppDomain.CurrentDomain.GetAssemblies()
                               from implementedType in assembly.GetTypes()
                               from interfaceType in implementedType.GetInterfaces()
-                                  .Where(iType => iType == interfaceGenricType)
+                                  .Where(iType => iType == interfaceGenricType &&
+                                        //Added check on Abstract classes for ChangedID#1
+                                        !implementedType.IsAbstract)
                               select implementedType;
             return serializers.ToList();
         }
