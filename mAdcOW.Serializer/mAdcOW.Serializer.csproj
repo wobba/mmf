@@ -59,6 +59,10 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EmitMapper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libraries\EmitMapper.dll</HintPath>
+    </Reference>
     <Reference Include="protobuf-net, Version=1.0.0.278, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL" />
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -73,26 +77,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Implementations\AltSerialize.cs" />
+    <Compile Include="IMappedType.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="Implementations\PrimitiveSerializer.cs" />
     <Compile Include="Implementations\ProtocolBufferSerializer.cs" />
     <Compile Include="ISerializeDeserialize.cs" />
     <Compile Include="Implementations\MarshalSerializer.cs" />
     <Compile Include="Implementations\NetSerializer.cs" />
+    <Compile Include="Mapper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SerializeDeserializeAbstractBase.cs" />
     <Compile Include="SerializerException.cs" />
     <Compile Include="Implementations\CreateUnsafeSerializer.cs" />
     <Compile Include="ValueTypeCheck.cs" />
     <Compile Include="Implementations\WCFDataContractSerializer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AltSerialize\AltSerialize.csproj">
-      <Project>{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}</Project>
-      <Name>AltSerialize</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="Libraries\EmitMapper.dll" />
     <Content Include="Libraries\protobuf-net.dll" />
   </ItemGroup>
   <ItemGroup>

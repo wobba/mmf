@@ -16,7 +16,7 @@ namespace mAdcOW.Serializer
 
     //TODO: Nested Types
     //Non Primitive properties
-    public class Mapper<T> where T : new()
+    public class Mapper<T> 
     {  
         //mapped type.
         static Type _mappedType = null;
@@ -46,14 +46,14 @@ namespace mAdcOW.Serializer
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IMappedType MapFromInstance(T data)
+        public IMappedType<T> MapFromInstance(T data)
         {
             object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
                                                                (TypeOfActualObject,
                                                                 _mappedType,
                                                                 DefaultMapConfig.Instance).Map(data);
 
-            return (IMappedType)result;
+            return (IMappedType<T>)result;
         }
 
 
@@ -62,7 +62,7 @@ namespace mAdcOW.Serializer
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public T MapToInstance(IMappedType data)
+        public T MapToInstance(IMappedType<T> data)
         {
             
             object result= ObjectMapperManager.DefaultInstance.GetMapperImpl
@@ -130,7 +130,7 @@ namespace mAdcOW.Serializer
                 ConstructorInfo classCtorInfo = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
 
                 CustomAttributeBuilder attributeBuilder
-                    = new CustomAttributeBuilder(classCtorInfo, null);
+                    = new CustomAttributeBuilder(classCtorInfo, new object[] {});
                                                               
                 propBuilder.SetCustomAttribute(attributeBuilder);
 
@@ -194,14 +194,14 @@ namespace mAdcOW.Serializer
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
             // create a type in the module
             TypeBuilder typeBuilder 
-                    = moduleBuilder.DefineType(className, TypeAttributes.Public, typeof(IMappedType));
+                    = moduleBuilder.DefineType(className, TypeAttributes.Public,null, new Type[]{typeof(IMappedType<T>)});
             
             //Apply DataContract Attribute
             ConstructorInfo dataContractCtorInfo 
                     = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
 
             CustomAttributeBuilder attributeBuilder 
-                    = new CustomAttributeBuilder(dataContractCtorInfo,null);
+                    = new CustomAttributeBuilder(dataContractCtorInfo,new object[]{});
                                                              
             typeBuilder.SetCustomAttribute(attributeBuilder);
 
@@ -210,7 +210,7 @@ namespace mAdcOW.Serializer
                     = typeof(ProtoContractAttribute).GetConstructor(Type.EmptyTypes);
 
             CustomAttributeBuilder protoBuffClassAttributeBuilder
-                    = new CustomAttributeBuilder(protoContractInfo,null);
+                    = new CustomAttributeBuilder(protoContractInfo, new object[] {});
          
             return typeBuilder;
         }

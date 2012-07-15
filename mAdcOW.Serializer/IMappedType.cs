@@ -5,7 +5,12 @@ using System.Text;
 
 namespace mAdcOW.Serializer
 {
-    public interface IMappedType
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public interface IMappedType<T> 
     {
+
     }
 }
