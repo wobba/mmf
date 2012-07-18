@@ -46,10 +46,12 @@ namespace mAdcOW.Serializer
             }
             else
             {
-            
-                MethodInfo method = typeof(SerializeDeserializeAbstractBase<T>).GetMethod("CanDoSerializeType");
-                method =method.MakeGenericMethod(new Type[]{Mapper.GetMappedType()});
-                _useClonedType= (bool)method.Invoke(this,null);
+                if (!typeof(T).IsPrimitive)
+                {
+                    MethodInfo method = typeof(SerializeDeserializeAbstractBase<T>).GetMethod("CanDoSerializeType");
+                    method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
+                    _useClonedType = (bool)method.Invoke(this, null);
+                }
                 return _useClonedType;
             }
            
