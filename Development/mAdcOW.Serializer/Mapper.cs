@@ -46,14 +46,14 @@ namespace mAdcOW.Serializer
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public IMappedType<T> MapFromInstance(T data)
+        public IMappedType MapFromInstance(T data)
         {
             object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
                                                                (TypeOfActualObject,
                                                                 _mappedType,
                                                                 DefaultMapConfig.Instance).Map(data);
 
-            return (IMappedType<T>)result;
+            return (IMappedType)result;
         }
 
 
@@ -62,7 +62,7 @@ namespace mAdcOW.Serializer
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        public T MapToInstance(IMappedType<T> data)
+        public T MapToInstance(IMappedType data)
         {
             
             object result= ObjectMapperManager.DefaultInstance.GetMapperImpl
@@ -116,7 +116,12 @@ namespace mAdcOW.Serializer
 
             foreach (PropertyInfo info in props)
             {
-               
+
+                FieldBuilder fieldBuilder = typeBuilder.DefineField("m_"+info.Name,
+                                                        info.PropertyType,
+                                                        FieldAttributes.Private);
+
+
                 string getterName = string.Concat("get_", info.Name);
                 string setterName = string.Concat("set_", info.Name);
 
@@ -150,7 +155,7 @@ namespace mAdcOW.Serializer
                 ILGenerator getterIL = getPropMethdBldr.GetILGenerator();
 
                 getterIL.Emit(OpCodes.Ldarg_0);
-                getterIL.Emit(OpCodes.Ldfld, getPropMethdBldr);
+                getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
                 getterIL.Emit(OpCodes.Ret);
 
 
@@ -161,7 +166,7 @@ namespace mAdcOW.Serializer
 
                 setterIL.Emit(OpCodes.Ldarg_0);
                 setterIL.Emit(OpCodes.Ldarg_1);
-                setterIL.Emit(OpCodes.Stfld, setPropMethdBldr);
+                setterIL.Emit(OpCodes.Stfld, fieldBuilder);
                 setterIL.Emit(OpCodes.Ret);
 
                 propBuilder.SetGetMethod(getPropMethdBldr);
@@ -194,8 +199,11 @@ namespace mAdcOW.Serializer
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
             // create a type in the module
             TypeBuilder typeBuilder 
-                    = moduleBuilder.DefineType(className, TypeAttributes.Public,null, new Type[]{typeof(IMappedType<T>)});
+                    = moduleBuilder.DefineType(className, TypeAttributes.Class| TypeAttributes.Public,null, new Type[]{typeof(IMappedType)});
             
+            typeBuilder.AddInterfaceImplementation(typeof(IMappedType));
+            
+
             //Apply DataContract Attribute
             ConstructorInfo dataContractCtorInfo 
                     = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
