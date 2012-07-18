@@ -117,7 +117,7 @@ namespace mAdcOW.Serializer
             foreach (PropertyInfo info in props)
             {
 
-                FieldBuilder fieldBuilder = typeBuilder.DefineField("m_"+info.Name,
+                FieldBuilder fieldBuilder = typeBuilder.DefineField(string.Format("m_{0}",info.Name),
                                                         info.PropertyType,
                                                         FieldAttributes.Private);
 
@@ -128,8 +128,9 @@ namespace mAdcOW.Serializer
                 PropertyBuilder propBuilder
                     = typeBuilder.DefineProperty(info.Name,
                                   PropertyAttributes.HasDefault,
+                                  CallingConventions.Standard,
                                   info.PropertyType,
-                                       null);
+                                  null);
 
                 //Apply Data Member Attribute
                 ConstructorInfo classCtorInfo = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
@@ -138,7 +139,7 @@ namespace mAdcOW.Serializer
                     = new CustomAttributeBuilder(classCtorInfo, new object[] {});
                                                               
                 propBuilder.SetCustomAttribute(attributeBuilder);
-
+                
                 //Apply ProtoMember Attribute
                 Type[] ctorParams = new Type[] { typeof(Int32) };
                 ConstructorInfo protoMbrCtorInfo = typeof(ProtoMemberAttribute).GetConstructor(ctorParams);
@@ -147,7 +148,8 @@ namespace mAdcOW.Serializer
                     = new CustomAttributeBuilder(protoMbrCtorInfo,new object[]{ protoMemberId++});
 
                 propBuilder.SetCustomAttribute(protoMbrAttbBuilder);
-                
+
+
                 
                 MethodBuilder getPropMethdBldr 
                     = typeBuilder.DefineMethod(getterName,getSetAttr,info.PropertyType,Type.EmptyTypes);
@@ -177,29 +179,33 @@ namespace mAdcOW.Serializer
             _mappedType = typeBuilder.CreateType();
             //save the assembly in a preconfigured dir..
             //before we try to create it, we can load all assemblies from the directory
+            assemblyBuilder.Save(typeof(T).Name + ".dll");
         }
 
-       
 
+        AssemblyBuilder assemblyBuilder;
+        AssemblyName name;
         private TypeBuilder CreateTypeBuilder()
         {
-            string assemblyName = Guid.NewGuid().ToString();
-            string moduleName = TypeOfActualObject.Name;
-            string className = TypeOfActualObject.Name;
+            string assemblyName = TypeOfActualObject.Name;
+            string moduleName = String.Format("Module_{0}",assemblyName);
+            string className = Guid.NewGuid().ToString();
 
             // Get current currentDomain.
             AppDomain currentDomain = AppDomain.CurrentDomain;
             // Create assembly in current currentDomain.
-            AssemblyName name = new AssemblyName();
+            name = new AssemblyName();
             name.Name = assemblyName;
-            AssemblyBuilder assemblyBuilder 
-                    = currentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
+            assemblyBuilder 
+                    = currentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
 
             // create a module in the assembly
             ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
             // create a type in the module
             TypeBuilder typeBuilder 
-                    = moduleBuilder.DefineType(className, TypeAttributes.Class| TypeAttributes.Public,null, new Type[]{typeof(IMappedType)});
+                    = moduleBuilder.DefineType(className, 
+                                               TypeAttributes.Class| TypeAttributes.Public| TypeAttributes.Serializable ,
+                                               null, new Type[]{typeof(IMappedType)});
             
             typeBuilder.AddInterfaceImplementation(typeof(IMappedType));
             
@@ -209,7 +215,7 @@ namespace mAdcOW.Serializer
                     = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
 
             CustomAttributeBuilder attributeBuilder 
-                    = new CustomAttributeBuilder(dataContractCtorInfo,new object[]{});
+                    = new CustomAttributeBuilder(dataContractCtorInfo,new object[]{ });
                                                              
             typeBuilder.SetCustomAttribute(attributeBuilder);
 
@@ -218,7 +224,8 @@ namespace mAdcOW.Serializer
                     = typeof(ProtoContractAttribute).GetConstructor(Type.EmptyTypes);
 
             CustomAttributeBuilder protoBuffClassAttributeBuilder
-                    = new CustomAttributeBuilder(protoContractInfo, new object[] {});
+                    = new CustomAttributeBuilder(protoContractInfo, new object[] { });
+            typeBuilder.SetCustomAttribute(protoBuffClassAttributeBuilder);
          
             return typeBuilder;
         }

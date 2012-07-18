@@ -22,9 +22,8 @@ namespace mAdcOW.Serializer
     
     public class WcfDataContractSerializer<T> : SerializeDeserializeAbstractBase<T>
     {
-     
-        private readonly DataContractSerializer _serializer = new DataContractSerializer(typeof (T));
-
+        DataContractSerializer _serializer;
+        
         #region SerializeDeserializeAbstractBase<T> Members
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace mAdcOW.Serializer
             //Changed Method Declaration From ISerializeDeserialize.ObjectToBytes
             //Retained same Method body
             MemoryStream byteStream = new MemoryStream();
-            _serializer.WriteObject(byteStream, data);
+            GetSerializer<U>().WriteObject(byteStream, data);
             byteStream.Position = 0;
             return byteStream.ToArray();
         }
@@ -62,9 +61,15 @@ namespace mAdcOW.Serializer
             //Changed Method Declaration From ISerializeDeserialize.BytesToObjects
             //Retained same Method body
             MemoryStream byteStream = new MemoryStream(bytes);
-            return (U) _serializer.ReadObject(byteStream);
+            return (U) GetSerializer<U>().ReadObject(byteStream);
         }
 
+        
+        private DataContractSerializer GetSerializer<U>()
+        {
+            _serializer = new DataContractSerializer(typeof (U));
+            return _serializer;
+        }
 
         //Moved to SerializeDeserializeAbstractBase as a part of ChangeID#1
         //public bool CanSerializeType()
