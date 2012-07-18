@@ -18,8 +18,8 @@ namespace mAdcOW.Serializer
         {
             if (_useClonedType)
             {
-                IMappedType<T> clonedObj = _mapper.MapFromInstance(data);
-                return SerializeObjectToBytes<IMappedType<T>>(clonedObj);
+                IMappedType clonedObj = _mapper.MapFromInstance(data);
+                return SerializeObjectToBytes<IMappedType>(clonedObj);
             }
 
             return SerializeObjectToBytes<T>(data);
@@ -31,7 +31,7 @@ namespace mAdcOW.Serializer
         {
             if (_useClonedType)
             {
-                IMappedType<T> result=  DeSerializeBytesToObject<IMappedType<T>>(bytes);
+                IMappedType result=  DeSerializeBytesToObject<IMappedType>(bytes);
                 return Mapper.MapToInstance(result);
             }
             return DeSerializeBytesToObject<T>(bytes);

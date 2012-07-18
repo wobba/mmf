@@ -9,7 +9,7 @@ namespace mAdcOW.Serializer
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IMappedType<T> 
+    public interface IMappedType
     {
 
     }
