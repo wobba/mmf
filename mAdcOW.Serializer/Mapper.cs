@@ -10,6 +10,7 @@ using EmitMapper.MappingConfiguration;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
 using ProtoBuf;
+using System.Security.Policy;
 
 namespace mAdcOW.Serializer
 {
@@ -21,6 +22,7 @@ namespace mAdcOW.Serializer
         //mapped type.
         static Type _mappedType = null;
         Type _type = null;
+        static bool assemblyLoaded = false;
 
 
         #region Public Properties
@@ -48,12 +50,16 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public IMappedType MapFromInstance(T data)
         {
-            object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                               (TypeOfActualObject,
-                                                                _mappedType,
-                                                                DefaultMapConfig.Instance).Map(data);
+            if (TryAndLoadClonedTypeAssembly())
+            {
 
-            return (IMappedType)result;
+                object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
+                                                                   (TypeOfActualObject,
+                                                                    _mappedType,
+                                                                    DefaultMapConfig.Instance).Map(data);
+                return (IMappedType)result;
+            }
+            return null;
         }
 
 
@@ -64,12 +70,18 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public T MapToInstance(IMappedType data)
         {
-            
-            object result= ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                               (_mappedType, 
-                                                                TypeOfActualObject, 
-                                                                DefaultMapConfig.Instance).Map(data);
-            return (T)result;
+
+            if (TryAndLoadClonedTypeAssembly())
+            {
+
+                object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
+                                                                   (_mappedType,
+                                                                    TypeOfActualObject,
+                                                                    DefaultMapConfig.Instance).Map(data);
+                return (T)result;
+            }
+
+            return default(T);
         }
 
         #endregion
@@ -94,121 +106,137 @@ namespace mAdcOW.Serializer
         /// with ProtoMember, DataMember attributes. Also marks the classes
         /// as ProtoContract or DataContract attributes.
         /// </summary>
-        //TODO: need to check if field also be generated.               
-        //TODO: Test, benchmark, update demo app,update dictionary MapperCache..
         private void CreateClonedTypeWithAttributes()
         {
-
-            TypeBuilder typeBuilder = CreateTypeBuilder();
-        
-            var findProps = from propertyInfo in TypeOfActualObject.GetProperties()
-                             .Where(iPropInfo => iPropInfo.PropertyType.IsPrimitive  &&
-                                    iPropInfo.MemberType == MemberTypes.Property &&
-                                    iPropInfo.GetSetMethod()!= null )
-                             select propertyInfo;
-        
-            List<PropertyInfo> props = findProps.ToList();
-
-            MethodAttributes getSetAttr
-                    = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
-
-            int protoMemberId = 1;
-
-            foreach (PropertyInfo info in props)
+            assemblyName = TypeOfActualObject.GetHashCode().ToString();
+            if (!TryAndLoadClonedTypeAssembly())
             {
+                TypeBuilder typeBuilder = CreateTypeBuilder();
 
-                FieldBuilder fieldBuilder = typeBuilder.DefineField(string.Format("m_{0}",info.Name),
-                                                        info.PropertyType,
-                                                        FieldAttributes.Private);
+                var findProps = from propertyInfo in TypeOfActualObject.GetProperties()
+                                 .Where(iPropInfo => iPropInfo.PropertyType.IsPrimitive &&
+                                        iPropInfo.MemberType == MemberTypes.Property &&
+                                        iPropInfo.GetSetMethod() != null)
+                                select propertyInfo;
 
+                List<PropertyInfo> props = findProps.ToList();
 
-                string getterName = string.Concat("get_", info.Name);
-                string setterName = string.Concat("set_", info.Name);
+                MethodAttributes getSetAttr
+                        = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 
-                PropertyBuilder propBuilder
-                    = typeBuilder.DefineProperty(info.Name,
-                                  PropertyAttributes.HasDefault,
-                                  CallingConventions.Standard,
-                                  info.PropertyType,
-                                  null);
+                int protoMemberId = 1;
 
-                //Apply Data Member Attribute
-                ConstructorInfo classCtorInfo = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
+                foreach (PropertyInfo info in props)
+                {
 
-                CustomAttributeBuilder attributeBuilder
-                    = new CustomAttributeBuilder(classCtorInfo, new object[] {});
-                                                              
-                propBuilder.SetCustomAttribute(attributeBuilder);
-                
-                //Apply ProtoMember Attribute
-                Type[] ctorParams = new Type[] { typeof(Int32) };
-                ConstructorInfo protoMbrCtorInfo = typeof(ProtoMemberAttribute).GetConstructor(ctorParams);
-
-                CustomAttributeBuilder protoMbrAttbBuilder
-                    = new CustomAttributeBuilder(protoMbrCtorInfo,new object[]{ protoMemberId++});
-
-                propBuilder.SetCustomAttribute(protoMbrAttbBuilder);
+                    FieldBuilder fieldBuilder = typeBuilder.DefineField(string.Format("m_{0}", info.Name),
+                                                            info.PropertyType,
+                                                            FieldAttributes.Private);
 
 
-                
-                MethodBuilder getPropMethdBldr 
-                    = typeBuilder.DefineMethod(getterName,getSetAttr,info.PropertyType,Type.EmptyTypes);
+                    string getterName = string.Concat("get_", info.Name);
+                    string setterName = string.Concat("set_", info.Name);
 
-                ILGenerator getterIL = getPropMethdBldr.GetILGenerator();
+                    PropertyBuilder propBuilder
+                        = typeBuilder.DefineProperty(info.Name,
+                                      PropertyAttributes.HasDefault,
+                                      CallingConventions.Standard,
+                                      info.PropertyType,
+                                      null);
 
-                getterIL.Emit(OpCodes.Ldarg_0);
-                getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
-                getterIL.Emit(OpCodes.Ret);
+                    //Apply ProtoMember Attribute
+                    Type[] ctorParams = new Type[] { typeof(Int32) };
+                    ConstructorInfo protoMbrCtorInfo = typeof(ProtoMemberAttribute).GetConstructor(ctorParams);
+
+                    CustomAttributeBuilder protoMbrAttbBuilder
+                        = new CustomAttributeBuilder(protoMbrCtorInfo, new object[] { protoMemberId++ });
+
+                    propBuilder.SetCustomAttribute(protoMbrAttbBuilder);
+
+                    //Apply Data Member Attribute
+                    ConstructorInfo classCtorInfo = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
+
+                    CustomAttributeBuilder attributeBuilder
+                        = new CustomAttributeBuilder(classCtorInfo, new object[] { });
+
+                    propBuilder.SetCustomAttribute(attributeBuilder);
+
+                    
 
 
-                MethodBuilder setPropMethdBldr 
-                    = typeBuilder.DefineMethod(setterName,getSetAttr,null,new Type[] { info.PropertyType });
+                    MethodBuilder getPropMethdBldr
+                        = typeBuilder.DefineMethod(getterName, getSetAttr, info.PropertyType, Type.EmptyTypes);
 
-                ILGenerator setterIL = setPropMethdBldr.GetILGenerator();
+                    ILGenerator getterIL = getPropMethdBldr.GetILGenerator();
 
-                setterIL.Emit(OpCodes.Ldarg_0);
-                setterIL.Emit(OpCodes.Ldarg_1);
-                setterIL.Emit(OpCodes.Stfld, fieldBuilder);
-                setterIL.Emit(OpCodes.Ret);
+                    getterIL.Emit(OpCodes.Ldarg_0);
+                    getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
+                    getterIL.Emit(OpCodes.Ret);
 
-                propBuilder.SetGetMethod(getPropMethdBldr);
-                propBuilder.SetSetMethod(setPropMethdBldr);
 
+                    MethodBuilder setPropMethdBldr
+                        = typeBuilder.DefineMethod(setterName, getSetAttr, null, new Type[] { info.PropertyType });
+
+                    ILGenerator setterIL = setPropMethdBldr.GetILGenerator();
+
+                    setterIL.Emit(OpCodes.Ldarg_0);
+                    setterIL.Emit(OpCodes.Ldarg_1);
+                    setterIL.Emit(OpCodes.Stfld, fieldBuilder);
+                    setterIL.Emit(OpCodes.Ret);
+
+                    propBuilder.SetGetMethod(getPropMethdBldr);
+                    propBuilder.SetSetMethod(setPropMethdBldr);
+
+                }
+
+                typeBuilder.CreateType();
+                //save the assembly in a preconfigured dir..
+                //before we try to create it, we can load all assemblies from the directory
+                assemblyBuilder.Save(assemblyName + ".dll");
             }
 
-            _mappedType = typeBuilder.CreateType();
-            //save the assembly in a preconfigured dir..
-            //before we try to create it, we can load all assemblies from the directory
-            assemblyBuilder.Save(typeof(T).Name + ".dll");
+            if (TryAndLoadClonedTypeAssembly())
+            {
+                _mappedType = assembly.GetTypes()[0];
+            }
+           
+            
         }
 
-
+        Assembly assembly;
+        string assemblyName = string.Empty;
         AssemblyBuilder assemblyBuilder;
         AssemblyName name;
+        string clonedTypesAssemblyPath = "C:/Assemblies";
+        string clonedTypeName = string.Empty;
+
         private TypeBuilder CreateTypeBuilder()
         {
-            string assemblyName = TypeOfActualObject.Name;
-            string moduleName = String.Format("Module_{0}",assemblyName);
+
             string className = Guid.NewGuid().ToString();
+
+            string moduleName = String.Format("{0}.dll",assemblyName);
+            
 
             // Get current currentDomain.
             AppDomain currentDomain = AppDomain.CurrentDomain;
             // Create assembly in current currentDomain.
             name = new AssemblyName();
             name.Name = assemblyName;
+            //name.CodeBase =clonedTypesAssemblyPath;
+
             assemblyBuilder 
-                    = currentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.RunAndSave);
+                    = currentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
 
             // create a module in the assembly
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName);
+            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName,true);
             // create a type in the module
             TypeBuilder typeBuilder 
-                    = moduleBuilder.DefineType(className, 
-                                               TypeAttributes.Class| TypeAttributes.Public| TypeAttributes.Serializable ,
-                                               null, new Type[]{typeof(IMappedType)});
+                    = moduleBuilder.DefineType(String.Format("{0}.{1}",assemblyName, className), 
+                                               TypeAttributes.Class| TypeAttributes.Public ,
+                                               null, new Type[] {typeof(IMappedType)});
             
             typeBuilder.AddInterfaceImplementation(typeof(IMappedType));
-            
 
             //Apply DataContract Attribute
             ConstructorInfo dataContractCtorInfo 
@@ -228,6 +256,25 @@ namespace mAdcOW.Serializer
             typeBuilder.SetCustomAttribute(protoBuffClassAttributeBuilder);
          
             return typeBuilder;
+        }
+
+        private bool TryAndLoadClonedTypeAssembly()
+        {
+            if (!assemblyLoaded)
+            {
+                try
+                {
+                    //loadfile is deprecated but loadfrom is not working
+                    assembly = Assembly.LoadFile(String.Format("{0}{1}.dll", AppDomain.CurrentDomain.BaseDirectory,assemblyName));
+                    assemblyLoaded = true;
+
+                }
+                catch (Exception ex)
+                {
+                    assemblyLoaded = false;
+                }
+            }
+            return assemblyLoaded;
         }
 
         #endregion

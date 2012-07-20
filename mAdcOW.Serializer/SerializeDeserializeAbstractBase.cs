@@ -19,7 +19,9 @@ namespace mAdcOW.Serializer
             if (_useClonedType)
             {
                 IMappedType clonedObj = _mapper.MapFromInstance(data);
-                return SerializeObjectToBytes<IMappedType>(clonedObj);
+                MethodInfo method = this.GetType().GetMethod("SerializeObjectToBytes");
+                method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
+                return (byte[])method.Invoke(this,new object[]{clonedObj});
             }
 
             return SerializeObjectToBytes<T>(data);
@@ -31,8 +33,9 @@ namespace mAdcOW.Serializer
         {
             if (_useClonedType)
             {
-                IMappedType result=  DeSerializeBytesToObject<IMappedType>(bytes);
-                return Mapper.MapToInstance(result);
+                MethodInfo method = this.GetType().GetMethod("DeSerializeBytesToObject");
+                method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
+                return (T)method.Invoke(this, new object[] { bytes });
             }
             return DeSerializeBytesToObject<T>(bytes);
         }

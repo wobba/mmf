@@ -29,10 +29,8 @@ namespace mAdcOW.Serializer.Implementations
         public override byte[] SerializeObjectToBytes<U>(U data)
         {
             //ChangeId#1
-            //Changed Method Declaration From ISerializeDeserialize.ObjectToBytes
-            //Retained same Method body
             MemoryStream byteStream = new MemoryStream();
-            ProtoBuf.Serializer.Serialize(byteStream, data);
+            ProtoBuf.Serializer.Serialize<U>(byteStream, data);
             byteStream.Position = 0;
             return byteStream.ToArray();
         }
@@ -52,6 +50,8 @@ namespace mAdcOW.Serializer.Implementations
             //Changed Method Declaration From ISerializeDeserialize.BytesToObjects
             //Retained same Method body
             MemoryStream byteStream = new MemoryStream(bytes);
+            if (bytes.Length == 0)
+                return default(U);
             return ProtoBuf.Serializer.Deserialize<U>(byteStream);
         }
 
