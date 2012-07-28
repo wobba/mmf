@@ -13,7 +13,6 @@ namespace mAdcOW.Serializer
         Mapper<T> _mapper = null;
 
 
-
         public virtual byte[] ObjectToBytes(T data)
         {
             if (_useClonedType)
@@ -21,13 +20,11 @@ namespace mAdcOW.Serializer
                 IMappedType clonedObj = _mapper.MapFromInstance(data);
                 MethodInfo method = this.GetType().GetMethod("SerializeObjectToBytes");
                 method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
-                return (byte[])method.Invoke(this,new object[]{clonedObj});
+                return (byte[])method.Invoke(this, new object[] { clonedObj });
             }
-
             return SerializeObjectToBytes<T>(data);
-
-
         }
+
 
         public virtual T BytesToObject(byte[] bytes)
         {
@@ -35,7 +32,8 @@ namespace mAdcOW.Serializer
             {
                 MethodInfo method = this.GetType().GetMethod("DeSerializeBytesToObject");
                 method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
-                return (T)method.Invoke(this, new object[] { bytes });
+                IMappedType clonedObj = (IMappedType)method.Invoke(this, new object[] { bytes });
+                return _mapper.MapToInstance(clonedObj);
             }
             return DeSerializeBytesToObject<T>(bytes);
         }
@@ -51,9 +49,16 @@ namespace mAdcOW.Serializer
             {
                 if (!typeof(T).IsPrimitive)
                 {
-                    MethodInfo method = typeof(SerializeDeserializeAbstractBase<T>).GetMethod("CanDoSerializeType");
-                    method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
-                    _useClonedType = (bool)method.Invoke(this, null);
+                    try
+                    {
+                        MethodInfo method = typeof(SerializeDeserializeAbstractBase<T>).GetMethod("CanDoSerializeType");
+                        method = method.MakeGenericMethod(new Type[] { Mapper.GetMappedType() });
+                        _useClonedType = (bool)method.Invoke(this, null);
+                    }
+                    catch (NotSupportedException ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine("Mapper Not Supported for Type : {0}",typeof(T).Name);
+                    }
                 }
                 return _useClonedType;
             }
@@ -99,7 +104,8 @@ namespace mAdcOW.Serializer
                 }
                 U classInstance = (U)Activator.CreateInstance(typeof(U), args);
                 byte[] bytes = SerializeObjectToBytes<U>(classInstance);
-                if (bytes.Length == 0) return false;
+                //in case of protocol buffer a class without any initilization returns in 0 bytes..
+                //if (bytes.Length == 0) return false;
                 DeSerializeBytesToObject<U>(bytes);
             }
             catch (Exception ex)

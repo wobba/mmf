@@ -17,6 +17,10 @@ namespace mAdcOW.Serializer
 
     //TODO: Nested Types
     //Non Primitive properties
+    //Clean up saved assemblies..
+    //Use a better naming connvention for assemblies
+    //provide an option to store assemblies for ever..
+    //can we create all the types in one assembly
     public class Mapper<T> 
     {  
         //mapped type.
@@ -34,12 +38,16 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public Type GetMappedType()
         {
+            //EmitMapper can create only public classes.
+            if (typeof(T).IsNestedPublic || typeof(T).IsPublic)
+            {
 
-            if (Type.ReferenceEquals(_mappedType, null))
-                CreateClonedTypeWithAttributes();
+                if (Type.ReferenceEquals(_mappedType, null))
+                    CreateClonedTypeWithAttributes();
 
-            return _mappedType;
-             
+                return _mappedType;
+            }
+            throw new NotSupportedException();
         }
 
 
@@ -50,14 +58,16 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public IMappedType MapFromInstance(T data)
         {
+
             if (TryAndLoadClonedTypeAssembly())
             {
-
-                object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                                   (TypeOfActualObject,
-                                                                    _mappedType,
-                                                                    DefaultMapConfig.Instance).Map(data);
-                return (IMappedType)result;
+             
+                    object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
+                                                                       (TypeOfActualObject,
+                                                                        _mappedType,
+                                                                        DefaultMapConfig.Instance).Map(data);
+                    return (IMappedType)result;
+               
             }
             return null;
         }
@@ -74,11 +84,11 @@ namespace mAdcOW.Serializer
             if (TryAndLoadClonedTypeAssembly())
             {
 
-                object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                                   (_mappedType,
-                                                                    TypeOfActualObject,
-                                                                    DefaultMapConfig.Instance).Map(data);
-                return (T)result;
+                    object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
+                                                                       (_mappedType,
+                                                                        TypeOfActualObject,
+                                                                        DefaultMapConfig.Instance).Map(data);
+                    return (T)result;
             }
 
             return default(T);
@@ -108,6 +118,9 @@ namespace mAdcOW.Serializer
         /// </summary>
         private void CreateClonedTypeWithAttributes()
         {
+
+
+
             assemblyName = TypeOfActualObject.GetHashCode().ToString();
             if (!TryAndLoadClonedTypeAssembly())
             {
@@ -233,7 +246,7 @@ namespace mAdcOW.Serializer
             // create a type in the module
             TypeBuilder typeBuilder 
                     = moduleBuilder.DefineType(String.Format("{0}.{1}",assemblyName, className), 
-                                               TypeAttributes.Class| TypeAttributes.Public ,
+                                               TypeAttributes.Class | TypeAttributes.Public ,
                                                null, new Type[] {typeof(IMappedType)});
             
             typeBuilder.AddInterfaceImplementation(typeof(IMappedType));
