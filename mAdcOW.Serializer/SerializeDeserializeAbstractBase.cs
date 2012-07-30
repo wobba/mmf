@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Reflection;
 
 namespace mAdcOW.Serializer
 {
-    public abstract class SerializeDeserializeAbstractBase<T>: ISerializeDeserialize<T>
+    public abstract class SerializeDeserializeAbstractBase<T> : ISerializeDeserialize<T>
     {
-
         bool _useClonedType = false;
         Mapper<T> _mapper = null;
 
@@ -57,21 +53,21 @@ namespace mAdcOW.Serializer
                     }
                     catch (NotSupportedException ex)
                     {
-                        System.Diagnostics.Trace.WriteLine("Mapper Not Supported for Type : {0}",typeof(T).Name);
+                        System.Diagnostics.Trace.WriteLine("Mapper Not Supported for Type : " + typeof(T).Name);
                     }
                 }
                 return _useClonedType;
             }
-           
+
         }
 
-      
+
         //U can be of Type T or of IMappedType<T>
         public abstract byte[] SerializeObjectToBytes<U>(U data);
-       
+
         //U can be of Type T or of IMappedType<T>
         public abstract U DeSerializeBytesToObject<U>(byte[] bytes);
-       
+
         protected bool UseClonedType
         {
             get { return _useClonedType; }
@@ -90,8 +86,6 @@ namespace mAdcOW.Serializer
                 return _mapper;
             }
         }
-            
-
 
         public bool CanDoSerializeType<U>()
         {
@@ -103,14 +97,16 @@ namespace mAdcOW.Serializer
                     args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
                 }
                 U classInstance = (U)Activator.CreateInstance(typeof(U), args);
+                DataHelper.AssignEmptyData(ref classInstance);
+
                 byte[] bytes = SerializeObjectToBytes<U>(classInstance);
                 //in case of protocol buffer a class without any initilization returns in 0 bytes..
-                //if (bytes.Length == 0) return false;
+                if (bytes.Length == 0) return false;
                 DeSerializeBytesToObject<U>(bytes);
             }
-            catch (Exception ex)
-            {  
-                    return false;
+            catch (Exception e)
+            {
+                return false;
             }
             return true;
         }

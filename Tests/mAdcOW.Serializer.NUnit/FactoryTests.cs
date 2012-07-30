@@ -102,6 +102,13 @@ namespace mAdcOW.Serializer.Test
         }
         #endregion
 
+        public class MySimpleClass
+        {
+            public int I { get; set; }
+            public string S { get; set; }
+            public double D { get; set; }
+        }
+
         #endregion
 
         [Test]
@@ -130,7 +137,6 @@ namespace mAdcOW.Serializer.Test
             Factory<UnknownSizeStruct> factory = new Factory<UnknownSizeStruct>();
             var actual = factory.GetSerializer();
             Assert.IsInstanceOf(typeof(ISerializeDeserialize<UnknownSizeStruct>), actual);
-            //Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<UnknownSizeStruct>));
         }
 
         [Test]
@@ -139,7 +145,6 @@ namespace mAdcOW.Serializer.Test
             Factory<UnknownSizeClass> factory = new Factory<UnknownSizeClass>();
             var actual = factory.GetSerializer();
             Assert.IsInstanceOf(typeof(ISerializeDeserialize<UnknownSizeClass>), actual);
-            //Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<UnknownSizeClass>));
         }
 
         [Test]
@@ -148,7 +153,6 @@ namespace mAdcOW.Serializer.Test
             Factory<NonMarshalledClass> factory = new Factory<NonMarshalledClass>();
             var actual = factory.GetSerializer();
             Assert.IsInstanceOf(typeof(ISerializeDeserialize<NonMarshalledClass>), actual);
-            //Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<NonMarshalledClass>));
         }
 
         [Test]
@@ -156,8 +160,7 @@ namespace mAdcOW.Serializer.Test
         {
             Factory<DataPackage> factory = new Factory<DataPackage>();
             var actual = factory.GetSerializer();
-            Assert.IsInstanceOf(typeof(ISerializeDeserialize<DataPackage>),actual);
-            
+            Assert.IsInstanceOf(typeof(ISerializeDeserialize<DataPackage>), actual);
         }
 
         [Test]
@@ -166,7 +169,6 @@ namespace mAdcOW.Serializer.Test
             Factory<string> factory = new Factory<string>();
             var actual = factory.GetSerializer();
             Assert.IsInstanceOf(typeof(ISerializeDeserialize<string>), actual);
-            //Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<string>));
         }
 
         [Test]
@@ -174,8 +176,7 @@ namespace mAdcOW.Serializer.Test
         {
             Factory<byte[]> factory = new Factory<byte[]>();
             var actual = factory.GetSerializer();
-            Assert.IsInstanceOf(typeof(ISerializeDeserialize<byte[]>),actual);
-            //Assert.IsInstanceOfType(actual, typeof(ISerializeDeserialize<byte[]>));
+            Assert.IsInstanceOf(typeof(ISerializeDeserialize<byte[]>), actual);
         }
 
         [Test]
@@ -189,6 +190,14 @@ namespace mAdcOW.Serializer.Test
             Assert.AreEqual(data.Age, result.Age);
             Assert.AreEqual(data.False, result.False);
             Assert.AreEqual(data.La, result.La);
+        }
+
+        [Test]
+        public void When_sending_in_a_simple_class_it_should_return_a_serializer()
+        {
+            Factory<MySimpleClass> factory = new Factory<MySimpleClass>();
+            var actual = factory.GetSerializer();
+            Assert.IsInstanceOf(typeof(ISerializeDeserialize<MySimpleClass>), actual);
         }
     }
 }

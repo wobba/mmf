@@ -255,7 +255,6 @@ namespace Winterdom.IO.FileMap
                 //SafeFileHandle handle = new SafeFileHandle(hFile,true);
                 //NTFS.Sparse.SparseFile.MarkSparse(handle);
 
-
                 map._fileName = fileName;
             }
 

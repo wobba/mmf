@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual C# Express 2010
+# Visual Studio 2010
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EACFCBD7-D400-4055-8A1A-F53A2C66305D}"
 	ProjectSection(SolutionItems) = preProject
 		lgpl-2.1.txt = lgpl-2.1.txt
@@ -10,15 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{F6131682-9
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Winterdom.IO.FileMap", "Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj", "{15DDC900-49FE-4212-9ED1-48F626D1FB86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltSerialize", "AltSerialize\AltSerialize.csproj", "{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer", "mAdcOW.Serializer\mAdcOW.Serializer.csproj", "{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.DataStructures", "mAdcOW.DataStructures\mAdcOW.DataStructures.csproj", "{96B4A787-61EA-413C-8DA2-C216C6256094}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer.Test", "Tests\mAdcOW.Serializer.Test\mAdcOW.Serializer.Test.csproj", "{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.DataStructures.Test", "Tests\mAdcOW.DataStructures.Test\mAdcOW.DataStructures.Test.csproj", "{E4C64F7D-BC72-4819-BB14-1FF410146330}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFS.Sparse", "NTFS.Sparse\NTFS.Sparse.csproj", "{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}"
 EndProject
@@ -30,36 +24,33 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mAdcOW.Serializer.NUnit", "
 EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 9
+		SccNumberOfProjects = 8
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
 		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs03
 		SccLocalPath0 = .
 		SccProjectUniqueName1 = Winterdom.IO.FileMap\\Winterdom.IO.FileMap.csproj
 		SccProjectName1 = Winterdom.IO.FileMap
 		SccLocalPath1 = Winterdom.IO.FileMap
-		SccProjectUniqueName2 = AltSerialize\\AltSerialize.csproj
-		SccProjectName2 = AltSerialize
-		SccLocalPath2 = AltSerialize
-		SccProjectUniqueName3 = mAdcOW.Serializer\\mAdcOW.Serializer.csproj
-		SccProjectName3 = mAdcOW.Serializer
-		SccLocalPath3 = mAdcOW.Serializer
-		SccProjectUniqueName4 = mAdcOW.DataStructures\\mAdcOW.DataStructures.csproj
-		SccProjectName4 = mAdcOW.DataStructures
-		SccLocalPath4 = mAdcOW.DataStructures
-		SccProjectUniqueName5 = Tests\\mAdcOW.Serializer.Test\\mAdcOW.Serializer.Test.csproj
-		SccProjectTopLevelParentUniqueName5 = mAdcOW.DataStructures.sln
-		SccProjectName5 = Tests/mAdcOW.Serializer.Test
-		SccLocalPath5 = Tests\\mAdcOW.Serializer.Test
-		SccProjectUniqueName6 = Tests\\mAdcOW.DataStructures.Test\\mAdcOW.DataStructures.Test.csproj
+		SccProjectUniqueName2 = mAdcOW.Serializer\\mAdcOW.Serializer.csproj
+		SccProjectName2 = mAdcOW.Serializer
+		SccLocalPath2 = mAdcOW.Serializer
+		SccProjectUniqueName3 = mAdcOW.DataStructures\\mAdcOW.DataStructures.csproj
+		SccProjectName3 = mAdcOW.DataStructures
+		SccLocalPath3 = mAdcOW.DataStructures
+		SccProjectUniqueName4 = BenchmarkConsoleApp\\BenchmarkConsoleApp.csproj
+		SccProjectName4 = BenchmarkConsoleApp
+		SccLocalPath4 = BenchmarkConsoleApp
+		SccProjectUniqueName5 = NTFS.Sparse\\NTFS.Sparse.csproj
+		SccProjectName5 = NTFS.Sparse
+		SccLocalPath5 = NTFS.Sparse
+		SccProjectUniqueName6 = Tests\\mAdcOW.DataStructures.Nunit\\mAdcOW.DataStructutes.Nunit.csproj
 		SccProjectTopLevelParentUniqueName6 = mAdcOW.DataStructures.sln
-		SccProjectName6 = Tests/mAdcOW.DataStructures.Test
-		SccLocalPath6 = Tests\\mAdcOW.DataStructures.Test
-		SccProjectUniqueName7 = BenchmarkConsoleApp\\BenchmarkConsoleApp.csproj
-		SccProjectName7 = BenchmarkConsoleApp
-		SccLocalPath7 = BenchmarkConsoleApp
-		SccProjectUniqueName8 = ..\\..\\..\\Users\\msvenson\\Documents\\Visual\u0020Studio\u00202008\\Projects\\SparseFileTest\\NTFS.Sparse\\NTFS.Sparse.csproj
-		SccProjectName8 = NTFS.Sparse
-		SccLocalPath8 = ..\\..\\..\\Users\\msvenson\\Documents\\Visual\u0020Studio\u00202008\\Projects\\SparseFileTest\\NTFS.Sparse
+		SccProjectName6 = Tests/mAdcOW.DataStructures.Nunit
+		SccLocalPath6 = Tests\\mAdcOW.DataStructures.Nunit
+		SccProjectUniqueName7 = Tests\\mAdcOW.Serializer.NUnit\\mAdcOW.Serializer.NUnit.csproj
+		SccProjectTopLevelParentUniqueName7 = mAdcOW.DataStructures.sln
+		SccProjectName7 = Tests/mAdcOW.Serializer.NUnit
+		SccLocalPath7 = Tests\\mAdcOW.Serializer.NUnit
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,10 +61,6 @@ Global
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15DDC900-49FE-4212-9ED1-48F626D1FB86}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -82,14 +69,6 @@ Global
 		{96B4A787-61EA-413C-8DA2-C216C6256094}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96B4A787-61EA-413C-8DA2-C216C6256094}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96B4A787-61EA-413C-8DA2-C216C6256094}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E4C64F7D-BC72-4819-BB14-1FF410146330}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CA1733D-3C60-4465-AA60-67EF3BAE15B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -111,7 +90,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{6D7348DB-F6B9-4D2E-B3F8-A3B1DCCF71AC} = {F6131682-9914-474C-AB44-CF41259B187C}
-		{E4C64F7D-BC72-4819-BB14-1FF410146330} = {F6131682-9914-474C-AB44-CF41259B187C}
+		{2DF26C44-BD1A-4A9E-A77F-B9A1FDC44E91} = {F6131682-9914-474C-AB44-CF41259B187C}
+		{E971FEAF-A0E2-4922-9550-C3510C0D4406} = {F6131682-9914-474C-AB44-CF41259B187C}
 	EndGlobalSection
 EndGlobal

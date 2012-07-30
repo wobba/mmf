@@ -1,33 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using EmitMapper;
-using System.CodeDom.Compiler;
-using Microsoft.CSharp;
 using System.Reflection;
-using EmitMapper.MappingConfiguration;
 using System.Reflection.Emit;
 using System.Runtime.Serialization;
+using System.Text;
+using EmitMapper;
+using EmitMapper.Mappers;
+using EmitMapper.MappingConfiguration;
 using ProtoBuf;
-using System.Security.Policy;
 
 namespace mAdcOW.Serializer
 {
-
     //TODO: Nested Types
     //Non Primitive properties
     //Clean up saved assemblies..
-    //Use a better naming connvention for assemblies
+    //Use a better naming convention for assemblies
     //provide an option to store assemblies for ever..
     //can we create all the types in one assembly
-    public class Mapper<T> 
-    {  
-        //mapped type.
-        static Type _mappedType = null;
-        Type _type = null;
-        static bool assemblyLoaded = false;
+    public class Mapper<T>
+    {
+        private Assembly _assembly;
+        private AssemblyBuilder _assemblyBuilder;
+        private bool _assemblyLoaded;
+        private string _assemblyName = string.Empty;
+        private Type _mappedType;
+        private AssemblyName _name;
+        private ObjectsMapperBaseImpl _objectsMapperFrom;
+        private ObjectsMapperBaseImpl _objectsMapperTo;
+        private Type _type;
 
+        private const MethodAttributes GetSetAttr =
+            MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
 
         #region Public Properties
 
@@ -41,8 +45,7 @@ namespace mAdcOW.Serializer
             //EmitMapper can create only public classes.
             if (typeof(T).IsNestedPublic || typeof(T).IsPublic)
             {
-
-                if (Type.ReferenceEquals(_mappedType, null))
+                if (ReferenceEquals(_mappedType, null))
                     CreateClonedTypeWithAttributes();
 
                 return _mappedType;
@@ -58,20 +61,13 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public IMappedType MapFromInstance(T data)
         {
-
             if (TryAndLoadClonedTypeAssembly())
             {
-             
-                    object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                                       (TypeOfActualObject,
-                                                                        _mappedType,
-                                                                        DefaultMapConfig.Instance).Map(data);
-                    return (IMappedType)result;
-               
+                object result = _objectsMapperFrom.Map(data);
+                return (IMappedType)result;
             }
             return null;
         }
-
 
         /// <summary>
         /// 
@@ -80,15 +76,10 @@ namespace mAdcOW.Serializer
         /// <returns></returns>
         public T MapToInstance(IMappedType data)
         {
-
             if (TryAndLoadClonedTypeAssembly())
             {
-
-                    object result = ObjectMapperManager.DefaultInstance.GetMapperImpl
-                                                                       (_mappedType,
-                                                                        TypeOfActualObject,
-                                                                        DefaultMapConfig.Instance).Map(data);
-                    return (T)result;
+                object result = _objectsMapperTo.Map(data);
+                return (T)result;
             }
 
             return default(T);
@@ -96,16 +87,12 @@ namespace mAdcOW.Serializer
 
         #endregion
 
-
         #region Non Public Members
-
         private Type TypeOfActualObject
         {
             get
             {
-                if (_type == null)
-                    _type = typeof(T);
-
+                if (_type == null) _type = typeof(T);
                 return _type;
             }
         }
@@ -118,67 +105,52 @@ namespace mAdcOW.Serializer
         /// </summary>
         private void CreateClonedTypeWithAttributes()
         {
+            string typeName = TypeOfActualObject.AssemblyQualifiedName ?? TypeOfActualObject.Name;
+            _assemblyName = Convert.ToBase64String(Encoding.ASCII.GetBytes(typeName));
 
-
-
-            assemblyName = TypeOfActualObject.GetHashCode().ToString();
             if (!TryAndLoadClonedTypeAssembly())
             {
                 TypeBuilder typeBuilder = CreateTypeBuilder();
-
                 var findProps = from propertyInfo in TypeOfActualObject.GetProperties()
-                                 .Where(iPropInfo => iPropInfo.PropertyType.IsPrimitive &&
-                                        iPropInfo.MemberType == MemberTypes.Property &&
-                                        iPropInfo.GetSetMethod() != null)
+                                    .Where(iPropInfo => iPropInfo.PropertyType.IsPrimitive &&
+                                                        iPropInfo.MemberType == MemberTypes.Property &&
+                                                        iPropInfo.GetSetMethod() != null)
                                 select propertyInfo;
 
                 List<PropertyInfo> props = findProps.ToList();
-
-                MethodAttributes getSetAttr
-                        = MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
-
                 int protoMemberId = 1;
 
                 foreach (PropertyInfo info in props)
                 {
-
                     FieldBuilder fieldBuilder = typeBuilder.DefineField(string.Format("m_{0}", info.Name),
-                                                            info.PropertyType,
-                                                            FieldAttributes.Private);
-
+                                                                        info.PropertyType,
+                                                                        FieldAttributes.Private);
 
                     string getterName = string.Concat("get_", info.Name);
                     string setterName = string.Concat("set_", info.Name);
 
                     PropertyBuilder propBuilder
                         = typeBuilder.DefineProperty(info.Name,
-                                      PropertyAttributes.HasDefault,
-                                      CallingConventions.Standard,
-                                      info.PropertyType,
-                                      null);
+                                                     PropertyAttributes.HasDefault,
+                                                     CallingConventions.Standard,
+                                                     info.PropertyType,
+                                                     null);
 
                     //Apply ProtoMember Attribute
-                    Type[] ctorParams = new Type[] { typeof(Int32) };
+                    Type[] ctorParams = new[] { typeof(Int32) };
                     ConstructorInfo protoMbrCtorInfo = typeof(ProtoMemberAttribute).GetConstructor(ctorParams);
-
-                    CustomAttributeBuilder protoMbrAttbBuilder
-                        = new CustomAttributeBuilder(protoMbrCtorInfo, new object[] { protoMemberId++ });
+                    CustomAttributeBuilder protoMbrAttbBuilder = new CustomAttributeBuilder(protoMbrCtorInfo, new object[] { protoMemberId++ });
 
                     propBuilder.SetCustomAttribute(protoMbrAttbBuilder);
 
                     //Apply Data Member Attribute
                     ConstructorInfo classCtorInfo = typeof(DataMemberAttribute).GetConstructor(Type.EmptyTypes);
 
-                    CustomAttributeBuilder attributeBuilder
-                        = new CustomAttributeBuilder(classCtorInfo, new object[] { });
+                    CustomAttributeBuilder attributeBuilder = new CustomAttributeBuilder(classCtorInfo, new object[] { });
 
                     propBuilder.SetCustomAttribute(attributeBuilder);
 
-                    
-
-
-                    MethodBuilder getPropMethdBldr
-                        = typeBuilder.DefineMethod(getterName, getSetAttr, info.PropertyType, Type.EmptyTypes);
+                    MethodBuilder getPropMethdBldr = typeBuilder.DefineMethod(getterName, GetSetAttr, info.PropertyType, Type.EmptyTypes);
 
                     ILGenerator getterIL = getPropMethdBldr.GetILGenerator();
 
@@ -186,12 +158,9 @@ namespace mAdcOW.Serializer
                     getterIL.Emit(OpCodes.Ldfld, fieldBuilder);
                     getterIL.Emit(OpCodes.Ret);
 
-
-                    MethodBuilder setPropMethdBldr
-                        = typeBuilder.DefineMethod(setterName, getSetAttr, null, new Type[] { info.PropertyType });
+                    MethodBuilder setPropMethdBldr = typeBuilder.DefineMethod(setterName, GetSetAttr, null, new[] { info.PropertyType });
 
                     ILGenerator setterIL = setPropMethdBldr.GetILGenerator();
-
                     setterIL.Emit(OpCodes.Ldarg_0);
                     setterIL.Emit(OpCodes.Ldarg_1);
                     setterIL.Emit(OpCodes.Stfld, fieldBuilder);
@@ -199,98 +168,80 @@ namespace mAdcOW.Serializer
 
                     propBuilder.SetGetMethod(getPropMethdBldr);
                     propBuilder.SetSetMethod(setPropMethdBldr);
-
                 }
 
                 typeBuilder.CreateType();
                 //save the assembly in a preconfigured dir..
                 //before we try to create it, we can load all assemblies from the directory
-                assemblyBuilder.Save(assemblyName + ".dll");
+                _assemblyBuilder.Save(_assemblyName + ".dll");
             }
 
             if (TryAndLoadClonedTypeAssembly())
             {
-                _mappedType = assembly.GetTypes()[0];
+                _mappedType = _assembly.GetTypes()[0];
+                _objectsMapperFrom = ObjectMapperManager.DefaultInstance.GetMapperImpl(TypeOfActualObject, _mappedType,
+                                                                                       DefaultMapConfig.Instance);
+                _objectsMapperTo = ObjectMapperManager.DefaultInstance.GetMapperImpl(_mappedType, TypeOfActualObject,
+                                                                                     DefaultMapConfig.Instance);
             }
-           
-            
         }
-
-        Assembly assembly;
-        string assemblyName = string.Empty;
-        AssemblyBuilder assemblyBuilder;
-        AssemblyName name;
-        string clonedTypesAssemblyPath = "C:/Assemblies";
-        string clonedTypeName = string.Empty;
 
         private TypeBuilder CreateTypeBuilder()
         {
-
             string className = Guid.NewGuid().ToString();
-
-            string moduleName = String.Format("{0}.dll",assemblyName);
-            
+            string moduleName = String.Format("{0}.dll", _assemblyName);
 
             // Get current currentDomain.
             AppDomain currentDomain = AppDomain.CurrentDomain;
             // Create assembly in current currentDomain.
-            name = new AssemblyName();
-            name.Name = assemblyName;
+            _name = new AssemblyName { Name = _assemblyName };
             //name.CodeBase =clonedTypesAssemblyPath;
 
-            assemblyBuilder 
-                    = currentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
+            _assemblyBuilder = currentDomain.DefineDynamicAssembly(_name, AssemblyBuilderAccess.Save);
 
             // create a module in the assembly
-            ModuleBuilder moduleBuilder = assemblyBuilder.DefineDynamicModule(moduleName,true);
+            ModuleBuilder moduleBuilder = _assemblyBuilder.DefineDynamicModule(moduleName, true);
             // create a type in the module
-            TypeBuilder typeBuilder 
-                    = moduleBuilder.DefineType(String.Format("{0}.{1}",assemblyName, className), 
-                                               TypeAttributes.Class | TypeAttributes.Public ,
-                                               null, new Type[] {typeof(IMappedType)});
-            
+            TypeBuilder typeBuilder
+                = moduleBuilder.DefineType(String.Format("{0}.{1}", _assemblyName, className),
+                                           TypeAttributes.Class | TypeAttributes.Public,
+                                           null, new[] { typeof(IMappedType) });
+
             typeBuilder.AddInterfaceImplementation(typeof(IMappedType));
 
             //Apply DataContract Attribute
-            ConstructorInfo dataContractCtorInfo 
-                    = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
+            ConstructorInfo dataContractCtorInfo = typeof(DataContractAttribute).GetConstructor(Type.EmptyTypes);
 
-            CustomAttributeBuilder attributeBuilder 
-                    = new CustomAttributeBuilder(dataContractCtorInfo,new object[]{ });
-                                                             
+            CustomAttributeBuilder attributeBuilder = new CustomAttributeBuilder(dataContractCtorInfo, new object[] { });
+
             typeBuilder.SetCustomAttribute(attributeBuilder);
 
             //Apply ProtoContractAttribute
-            ConstructorInfo protoContractInfo 
-                    = typeof(ProtoContractAttribute).GetConstructor(Type.EmptyTypes);
+            ConstructorInfo protoContractInfo = typeof(ProtoContractAttribute).GetConstructor(Type.EmptyTypes);
 
-            CustomAttributeBuilder protoBuffClassAttributeBuilder
-                    = new CustomAttributeBuilder(protoContractInfo, new object[] { });
+            CustomAttributeBuilder protoBuffClassAttributeBuilder = new CustomAttributeBuilder(protoContractInfo, new object[] { });
             typeBuilder.SetCustomAttribute(protoBuffClassAttributeBuilder);
-         
+
             return typeBuilder;
         }
 
         private bool TryAndLoadClonedTypeAssembly()
         {
-            if (!assemblyLoaded)
+            if (!_assemblyLoaded)
             {
                 try
                 {
                     //loadfile is deprecated but loadfrom is not working
-                    assembly = Assembly.LoadFile(String.Format("{0}{1}.dll", AppDomain.CurrentDomain.BaseDirectory,assemblyName));
-                    assemblyLoaded = true;
-
+                    _assembly = Assembly.LoadFile(String.Format(@"{0}\{1}.dll", AppDomain.CurrentDomain.BaseDirectory, _assemblyName));
+                    _assemblyLoaded = true;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    assemblyLoaded = false;
+                    _assemblyLoaded = false;
                 }
             }
-            return assemblyLoaded;
+            return _assemblyLoaded;
         }
-
         #endregion
-
     }
 }

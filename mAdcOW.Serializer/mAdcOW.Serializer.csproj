@@ -59,11 +59,15 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EmitMapper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Libraries\EmitMapper.dll</HintPath>
+    <Reference Include="EmitMapper">
+      <HintPath>..\packages\EmitMapper.1.0.0\lib\EmitMapper.dll</HintPath>
     </Reference>
-    <Reference Include="protobuf-net, Version=1.0.0.278, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL" />
+    <Reference Include="protobuf-net, Version=2.0.0.480, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <HintPath>..\packages\protobuf-net.2.0.0.480\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="Serialization">
+      <HintPath>..\packages\Silverlight-Serializer.2.0.0.0\lib\net40\Serialization.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
     </Reference>
@@ -79,8 +83,11 @@
   <ItemGroup>
     <Compile Include="IMappedType.cs" />
     <Compile Include="Factory.cs" />
+    <Compile Include="Implementations\DataHelper.cs" />
     <Compile Include="Implementations\PrimitiveSerializer.cs" />
     <Compile Include="Implementations\ProtocolBufferSerializer.cs" />
+    <Compile Include="Implementations\SilverlightSerializer.cs" />
+    <Compile Include="Implementations\XmlSerializer.cs" />
     <Compile Include="ISerializeDeserialize.cs" />
     <Compile Include="Implementations\MarshalSerializer.cs" />
     <Compile Include="Implementations\NetSerializer.cs" />
@@ -91,10 +98,6 @@
     <Compile Include="Implementations\CreateUnsafeSerializer.cs" />
     <Compile Include="ValueTypeCheck.cs" />
     <Compile Include="Implementations\WCFDataContractSerializer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Libraries\EmitMapper.dll" />
-    <Content Include="Libraries\protobuf-net.dll" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -117,6 +120,9 @@
       <ProductName>Windows Installer 3.1</ProductName>
       <Install>true</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
