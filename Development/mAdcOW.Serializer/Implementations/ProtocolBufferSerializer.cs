@@ -1,7 +1,5 @@
 ﻿/*
  * 
- * 
- * 
  * Changes(ID#1, Refer Changes.txt File)
  * --------------------------
  * Removed base Interface  ISerializeDeserialize,base abtract class SerializeDeserializeAbstractBase
@@ -10,72 +8,48 @@
  *  
  */  
 
-using System;
 using System.IO;
 
-namespace mAdcOW.Serializer.Implementations
+namespace mAdcOW.Serializer
 {
     public class ProtocolBufferSerializer<T> : SerializeDeserializeAbstractBase<T>
     {
         /// <summary>
-        /// Serializes the object of type U  and returns 
+        /// Serializes the object of type T and returns 
         /// corresponding Byte[]
         /// </summary>
-        /// <typeparam name="U">
+        /// <typeparam name="T">
         /// U can be of Type T(Class Definition) or IMappedType
         /// </typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        public override byte[] SerializeObjectToBytes<U>(U data)
+        public override byte[] SerializeObjectToBytes<T>(T data)
         {
             //ChangeId#1
             MemoryStream byteStream = new MemoryStream();
-            ProtoBuf.Serializer.Serialize<U>(byteStream, data);
+            ProtoBuf.Serializer.Serialize(byteStream, data);
             byteStream.Position = 0;
             return byteStream.ToArray();
         }
 
         /// <summary>
-        /// Deserializes the object of type U  and returns 
+        /// Deserializes the object of type T and returns 
         /// corresponding Byte[]
         /// </summary>
-        /// <typeparam name="U">
+        /// <typeparam name="T">
         /// U can be of Type T(Class Definition) or IMappedType
         /// </typeparam>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public override U DeSerializeBytesToObject<U>(byte[] bytes)
+        public override T DeSerializeBytesToObject<T>(byte[] bytes)
         {
             //ChangeId#1
             //Changed Method Declaration From ISerializeDeserialize.BytesToObjects
             //Retained same Method body
             MemoryStream byteStream = new MemoryStream(bytes);
             if (bytes.Length == 0)
-                return default(U);
-            return ProtoBuf.Serializer.Deserialize<U>(byteStream);
+                return default(T);
+            return ProtoBuf.Serializer.Deserialize<T>(byteStream);
         }
-
-        //Moved to SerializeDeserializeAbstractBase as a part of ChangeID#1
-        //public override bool CanSerializeType()
-        //{
-        //    try
-        //    {
-        //        object[] args = null;
-        //        if (typeof(T) == typeof(string))
-        //        {
-        //            args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
-        //        }
-        //        T classInstance = (T)Activator.CreateInstance(typeof(T), args);
-        //        byte[] bytes = ObjectToBytes(classInstance);
-        //        if (bytes.Length == 0) return false;
-        //        BytesToObject(bytes);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return false;
-        //    }
-        //    return true;
-        //}
-        
     }
 }

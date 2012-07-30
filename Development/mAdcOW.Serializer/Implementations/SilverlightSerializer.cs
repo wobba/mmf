@@ -1,36 +1,21 @@
 ﻿using System;
-using AltSerialize;
 
 namespace mAdcOW.Serializer
 {
-    /// <summary>
-    /// Serializer implemented with AltSerialize project - http://www.codeproject.com/KB/cs/AltSerializer.aspx
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class AltSerialize<T> : ISerializeDeserialize<T>
+    public class SilverlightSerializer<T> : ISerializeDeserialize<T>
     {
-        private readonly ByteSerializer _serializer = new ByteSerializer();
-
-        public AltSerialize()
-        {
-            _serializer.CacheObject(typeof(T));
-        }
-
-        #region ISerializeDeserialize<T> Members
-
         public byte[] ObjectToBytes(T data)
         {
-            byte[] bytes = _serializer.Serialize(data);
-            return bytes;
+            return Serialization.SilverlightSerializer.Serialize(data);
         }
 
-        public T BytesToObject( byte[] bytes )
+        public T BytesToObject(byte[] bytes)
         {
-            return (T)_serializer.Deserialize(bytes);
+            return (T)Serialization.SilverlightSerializer.Deserialize(bytes);
         }
 
         public bool CanSerializeType()
-        {            
+        {
             try
             {
                 object[] args = null;
@@ -39,6 +24,7 @@ namespace mAdcOW.Serializer
                     args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
                 }
                 T classInstance = (T)Activator.CreateInstance(typeof(T), args);
+                DataHelper.AssignEmptyData(ref classInstance);
                 byte[] bytes = ObjectToBytes(classInstance);
                 BytesToObject(bytes);
             }
@@ -48,7 +34,5 @@ namespace mAdcOW.Serializer
             }
             return true;
         }
-
-        #endregion
     }
 }

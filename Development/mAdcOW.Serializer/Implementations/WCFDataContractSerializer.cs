@@ -9,7 +9,6 @@
  *  
  */                                                       
  
-using System;
 using System.IO;
 using System.Runtime.Serialization;
 
@@ -70,27 +69,6 @@ namespace mAdcOW.Serializer
             _serializer = new DataContractSerializer(typeof (U));
             return _serializer;
         }
-
-        //Moved to SerializeDeserializeAbstractBase as a part of ChangeID#1
-        //public bool CanSerializeType()
-        //{
-        //    try
-        //    {
-        //        object[] args = null;
-        //        if (typeof(T) == typeof(string))
-        //        {
-        //            args = new object[] { new[] { 'T', 'e', 's', 't', 'T', 'e', 's', 't', 'T', 'e', 's', 't' } };
-        //        }
-        //        T classInstance = (T)Activator.CreateInstance(typeof(T), args);
-        //        byte[] bytes = ObjectToBytes(classInstance);
-        //        BytesToObject(bytes);
-        //    }
-        //    catch (Exception)
-        //    {
-        //        return false;
-        //    }
-        //    return true;
-        //}
         #endregion
     }
 }

@@ -21,8 +21,8 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private static readonly Factory<TKey> _keyFactory = new Factory<TKey>();
         private static readonly Factory<TValue> _valueFactory = new Factory<TValue>();
 
-        private static ISerializeDeserialize<TKey> _keySerializer = _keyFactory.GetSerializer();
-        private static ISerializeDeserialize<TValue> _valueSerializer = _valueFactory.GetSerializer();
+        private static ISerializeDeserialize<TKey> _keySerializer;
+        private static ISerializeDeserialize<TValue> _valueSerializer;
         private readonly int _capacity;
 
         private Array<long> _hashCodeLookup;
@@ -39,6 +39,11 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private string _keyFile;
         private string _valueFile;
 
+        static BackingUnknownSize() 
+        {
+            _keySerializer = _keyFactory.GetSerializer();
+            _valueSerializer = _valueFactory.GetSerializer();
+        }
 
         /// <summary>
         /// 

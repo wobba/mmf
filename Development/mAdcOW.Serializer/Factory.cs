@@ -2,24 +2,22 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 
 namespace mAdcOW.Serializer
 {
     public class Factory<T>
     {
-        static HashSet<Type> _compiledUnsafeSerializer = new HashSet<Type>();
+        static readonly HashSet<Type> _compiledUnsafeSerializer = new HashSet<Type>();
+        private static readonly Dictionary<Type, ISerializeDeserialize<T>> DictionaryCache = new Dictionary<Type, ISerializeDeserialize<T>>();
 
-        private static readonly Dictionary<Type, ISerializeDeserialize<T>> _dictionaryCache =
-            new Dictionary<Type, ISerializeDeserialize<T>>();
-
-       
         public ISerializeDeserialize<T> GetSerializer()
         {
             ISerializeDeserialize<T> result;
             Type objectType = typeof(T);
-            if (!_dictionaryCache.TryGetValue(objectType, out result))
+            if (!DictionaryCache.TryGetValue(objectType, out result))
             {
-                _dictionaryCache[objectType] = result = PickOptimalSerializer();
+                DictionaryCache[objectType] = result = PickOptimalSerializer();
             }
             Trace.WriteLine(string.Format("{0} uses {1}", typeof(T), result.GetType()));
             return result;
@@ -27,7 +25,7 @@ namespace mAdcOW.Serializer
 
         public ISerializeDeserialize<T> GetSerializer(string name)
         {
-            return (from pair in _dictionaryCache
+            return (from pair in DictionaryCache
                     where pair.Value.GetType().AssemblyQualifiedName == name
                     select pair.Value).FirstOrDefault();
         }
@@ -42,8 +40,8 @@ namespace mAdcOW.Serializer
 
             var benchmarkTimes = BenchmarkSerializers(listOfSerializers);
             if (benchmarkTimes.Count == 0)
-            {  
-               throw new SerializerException("No serializer available for the type");
+            {
+                throw new SerializerException("No serializer available for the type");
             }
             return benchmarkTimes.Last().Value;
         }
@@ -64,43 +62,65 @@ namespace mAdcOW.Serializer
         private List<Type> GetListOfGenericSerializers()
         {
             Type interfaceGenricType = typeof(ISerializeDeserialize<T>);
-            var serializers = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                              from genericType in assembly.GetTypes()
-                              from interfaceType in genericType.GetInterfaces()
-                                  .Where(
-                                  iType =>
-                                  (iType.Name == interfaceGenricType.Name && 
-                                   genericType.IsGenericTypeDefinition &&
-                                   //Added check on Abstract classes for ChangedID#1
-                                   !genericType.IsAbstract
-                                  ))
-                              select genericType;
-            return serializers.ToList();
+
+            List<Type> serializers = new List<Type>(10);
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    var types = from genericType in assembly.GetTypes()
+                                from interfaceType in genericType.GetInterfaces()
+                                    .Where(iType => (iType.Name == interfaceGenricType.Name &&
+                                     genericType.IsGenericTypeDefinition && !genericType.IsAbstract
+                                    ))
+                                select genericType;
+                    serializers.AddRange(types);
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return serializers;
         }
 
         private List<Type> GetListOfImplementedSerializers()
         {
             Type interfaceGenricType = typeof(ISerializeDeserialize<T>);
-            var serializers = from assembly in AppDomain.CurrentDomain.GetAssemblies()
-                              from implementedType in assembly.GetTypes()
-                              from interfaceType in implementedType.GetInterfaces()
-                                  .Where(iType => iType == interfaceGenricType &&
-                                        //Added check on Abstract classes for ChangedID#1
-                                        !implementedType.IsAbstract)
-                              select implementedType;
-            return serializers.ToList();
-        }
 
+            List<Type> serializers = new List<Type>(10);
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    var types = from implementedType in assembly.GetTypes()
+                                from interfaceType in implementedType.GetInterfaces()
+                                    .Where(iType => iType == interfaceGenricType && !implementedType.IsAbstract)
+                                select implementedType;
+                    serializers.AddRange(types);
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return serializers;
+        }
 
         private SortedDictionary<int, ISerializeDeserialize<T>> BenchmarkSerializers(IEnumerable<Type> listOfSerializers)
         {
             var benchmarkTimes = new SortedDictionary<int, ISerializeDeserialize<T>>();
             foreach (Type type in listOfSerializers)
             {
-                ISerializeDeserialize<T> serializer = InstantiateSerializer(type);
-                if (!serializer.CanSerializeType()) continue;
-                int count = BenchMarkSerializer(serializer);
-                if (count > 0) benchmarkTimes.Add(count, serializer);
+                try
+                {
+                    ISerializeDeserialize<T> serializer = InstantiateSerializer(type);
+                    if (!serializer.CanSerializeType()) continue;
+                    int count = BenchMarkSerializer(serializer);
+                    if (count > 0) benchmarkTimes.Add(count, serializer);
+                }
+                catch (Exception)
+                {
+                }
             }
 
             foreach (var valuePair in benchmarkTimes)
@@ -155,6 +175,7 @@ namespace mAdcOW.Serializer
             try
             {
                 T classInstance = (T)Activator.CreateInstance(typeof(T), args);
+                DataHelper.AssignEmptyData(ref classInstance);
                 Stopwatch sw = Stopwatch.StartNew();
                 int count = 0;
                 while (sw.ElapsedMilliseconds < 500)
@@ -166,7 +187,7 @@ namespace mAdcOW.Serializer
                 sw.Stop();
                 return count;
             }
-            catch (MissingMethodException e)
+            catch (MissingMethodException)
             {
                 // Missing default constructor
                 return 0;
