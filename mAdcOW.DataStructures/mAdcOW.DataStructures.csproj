@@ -82,17 +82,9 @@
     <Compile Include="ViewManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AltSerialize\AltSerialize.csproj">
-      <Project>{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}</Project>
-      <Name>AltSerialize</Name>
-    </ProjectReference>
     <ProjectReference Include="..\mAdcOW.Serializer\mAdcOW.Serializer.csproj">
       <Project>{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}</Project>
       <Name>mAdcOW.Serializer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj">
-      <Project>{15DDC900-49FE-4212-9ED1-48F626D1FB86}</Project>
-      <Name>Winterdom.IO.FileMap</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

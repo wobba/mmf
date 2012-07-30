@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Timers;
-using Winterdom.IO.FileMap;
+//using Winterdom.IO.FileMap;
 using Timer = System.Timers.Timer;
 
 namespace mAdcOW.DataStructures
@@ -18,8 +19,8 @@ namespace mAdcOW.DataStructures
 
         private readonly ReaderWriterLockSlim _viewLock = new ReaderWriterLockSlim();
 
-        private readonly System.Collections.Generic.Dictionary<int, MapViewStream> _viewThreadPool =
-            new System.Collections.Generic.Dictionary<int, MapViewStream>(10);
+        private readonly System.Collections.Generic.Dictionary<int, MemoryMappedViewStream> _viewThreadPool =
+            new System.Collections.Generic.Dictionary<int, MemoryMappedViewStream>(10);
 
         private int _dataSize;
         private long _fileSize;
@@ -47,7 +48,7 @@ namespace mAdcOW.DataStructures
             try
             {
                 _lastUsedThread[threadId] = DateTime.UtcNow;
-                MapViewStream s;
+                MemoryMappedViewStream s;
                 if (_viewThreadPool.TryGetValue(threadId, out s))
                 {
                     return s;
@@ -74,7 +75,17 @@ namespace mAdcOW.DataStructures
             _dataSize = dataSize;
             _fileSize = capacity * dataSize;
             _fileName = fileName;
-            _map = MemoryMappedFile.Create(fileName, MapProtection.PageReadWrite, _fileSize);
+
+            CreateOrOpenFile();
+        }
+
+        private void CreateOrOpenFile()
+        {
+            var fileStream = new FileStream(_fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+            MemoryMappedFileSecurity mmfs = new MemoryMappedFileSecurity();
+            _map = MemoryMappedFile.CreateFromFile(fileStream, Path.GetFileName(_fileName), _fileSize,
+                                                   MemoryMappedFileAccess.ReadWrite, mmfs, HandleInheritability.Inheritable,
+                                                   false);
         }
 
         public long Length
@@ -112,8 +123,8 @@ namespace mAdcOW.DataStructures
 
         private Stream AddNewViewToThreadPool(int threadId)
         {
-            MapViewStream mvs;
-            _viewThreadPool[threadId] = mvs = _map.MapAsStream();
+            MemoryMappedViewStream mvs;
+            _viewThreadPool[threadId] = mvs = _map.CreateViewStream();
 
             Trace.Write(threadId);
             Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
@@ -123,9 +134,9 @@ namespace mAdcOW.DataStructures
 
         private void EnsureBackingFile()
         {
-            if (_map == null || !_map.IsOpen)
+            if (_map == null)
             {
-                _map = MemoryMappedFile.Create(_fileName, MapProtection.PageReadWrite, _fileSize);
+                CreateOrOpenFile();
             }
         }
 
@@ -159,10 +170,9 @@ namespace mAdcOW.DataStructures
             }
         }
 
-        private System.Collections.Generic.List<int> FindThreadsToClean(int hours)
+        private IEnumerable<int> FindThreadsToClean(int hours)
         {
-            System.Collections.Generic.List<int> cleanedThreads =
-                new System.Collections.Generic.List<int>(_lastUsedThread.Count);
+            var cleanedThreads = new System.Collections.Generic.List<int>(_lastUsedThread.Count);
             foreach (KeyValuePair<int, DateTime> pair in _lastUsedThread)
             {
                 if (pair.Value < DateTime.UtcNow.AddHours(hours))
@@ -237,10 +247,9 @@ namespace mAdcOW.DataStructures
 
         private void CloseMapFile()
         {
-            if (_map != null)
-            {
-                _map.Close();
-            }
+            if (_map == null) return;
+            _map.Dispose();
+            _map = null;
         }
 
         private void CleanUpBackingFile()
