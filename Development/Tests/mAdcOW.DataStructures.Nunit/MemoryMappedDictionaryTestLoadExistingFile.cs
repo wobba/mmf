@@ -12,7 +12,6 @@ namespace mAdcOW.DataStructures.Test
     [TestFixture]
     public class MemoryMappedDictionaryTestLoadExistingFile
     {
-        
         string _path = AppDomain.CurrentDomain.BaseDirectory;
         private bool _error;
         private string _errorMessage;
@@ -46,6 +45,27 @@ namespace mAdcOW.DataStructures.Test
                 {
                 }
             }
+        }
+
+        [Test]
+        public void When_adding_more_items_to_an_existing_file_validate_the_content()
+        {
+            var dict = new Dictionary<int, int>(_path, 20, true, "test1");
+            dict[0] = 0;
+            dict[1] = 1;
+            dict = null;
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            Thread.Sleep(4000);
+            dict = new Dictionary<int, int>(_path, 20, false, "test1");
+            Assert.AreEqual(2, dict.Count);
+            Assert.AreEqual(0, dict[0]);
+            Assert.AreEqual(1, dict[1]);
+            dict[0] = 2;
+            dict[5] = 5;
+            Assert.AreEqual(3, dict.Count);
+            Assert.AreEqual(2, dict[0]);
+            Assert.AreEqual(5, dict[5]);
         }
 
         public void CreateDict()

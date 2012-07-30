@@ -8,8 +8,8 @@
     <ProjectGuid>{2DF26C44-BD1A-4A9E-A77F-B9A1FDC44E91}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>mAdcOW.DataStructutes.Nunit</RootNamespace>
-    <AssemblyName>mAdcOW.DataStructutes.Nunit</AssemblyName>
+    <RootNamespace>mAdcOW.DataStructures.Nunit</RootNamespace>
+    <AssemblyName>mAdcOW.DataStructures.Nunit</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
@@ -39,10 +39,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ReferencedDlls\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="protobuf-net, Version=1.0.0.278, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ReferencedDlls\protobuf-net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -66,10 +62,6 @@
     <Compile Include="ThreadingTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AltSerialize\AltSerialize.csproj">
-      <Project>{1AD84581-F56C-4C36-A3AE-4B43EEF75DD6}</Project>
-      <Name>AltSerialize</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\mAdcOW.DataStructures\mAdcOW.DataStructures.csproj">
       <Project>{96B4A787-61EA-413C-8DA2-C216C6256094}</Project>
       <Name>mAdcOW.DataStructures</Name>
@@ -77,10 +69,6 @@
     <ProjectReference Include="..\..\mAdcOW.Serializer\mAdcOW.Serializer.csproj">
       <Project>{AFB0F811-17E7-4F86-A64A-EAE2A1BD6410}</Project>
       <Name>mAdcOW.Serializer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Winterdom.IO.FileMap\Winterdom.IO.FileMap.csproj">
-      <Project>{15DDC900-49FE-4212-9ED1-48F626D1FB86}</Project>
-      <Name>Winterdom.IO.FileMap</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
