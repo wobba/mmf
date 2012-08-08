@@ -107,18 +107,13 @@ namespace mAdcOW.DataStructures
             Grow(sizeToGrowFrom, GrowPercentage);
         }
 
-        public void CleanUp()
-        {
-            Dispose();
-        }
-
         public bool KeepFile { get; set; }
 
         #endregion
 
         ~ViewManager()
         {
-            Dispose(false);
+            Dispose();
         }
 
         private Stream AddNewViewToThreadPool(int threadId)
@@ -127,8 +122,6 @@ namespace mAdcOW.DataStructures
             _viewThreadPool[threadId] = mvs = _map.CreateViewStream();
 
             Trace.Write(threadId);
-            Trace.WriteLine("Adding GC memory pressure:" + mvs.Length);
-            GC.AddMemoryPressure(mvs.Length);
             return mvs;
         }
 
@@ -188,9 +181,7 @@ namespace mAdcOW.DataStructures
             if (_viewThreadPool.ContainsKey(threadId))
             {
                 Trace.Write(threadId);
-                Trace.WriteLine("Removing GC memory pressure: " + _viewThreadPool[threadId].Length);
-                GC.RemoveMemoryPressure(_viewThreadPool[threadId].Length);
-                _viewThreadPool[threadId].Close();
+                _viewThreadPool[threadId].Dispose();
                 _viewThreadPool.Remove(threadId);
             }
             _lastUsedThread.Remove(threadId);
@@ -208,7 +199,7 @@ namespace mAdcOW.DataStructures
             {
                 _deleteFile = false; // don't delete the file, only grow                
                 SetNewFileSize(size, percentage);
-                Dispose(true); // Clean up before growing the file
+                Dispose(); // Clean up before growing the file
                 EnsureBackingFile();
                 _deleteFile = true; // reset deletefile flag
             }
@@ -231,17 +222,8 @@ namespace mAdcOW.DataStructures
 
         public void Dispose()
         {
-            Dispose(true);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (disposing || _deleteFile)
-            {
-                GC.SuppressFinalize(this);
-                DisposeAllViews();
-                CloseMapFile();
-            }
+            DisposeAllViews();
+            CloseMapFile();
             CleanUpBackingFile();
         }
 
@@ -256,13 +238,11 @@ namespace mAdcOW.DataStructures
         {
             try
             {
-                if (_deleteFile && !KeepFile)
+                if (!_deleteFile || KeepFile) return;
+                if (File.Exists(_fileName))
                 {
-                    if (File.Exists(_fileName))
-                    {
-                        Trace.WriteLine("Deleting file: " + _fileName);
-                        File.Delete(_fileName);
-                    }
+                    Trace.WriteLine("Deleting file: " + _fileName);
+                    File.Delete(_fileName);
                 }
             }
             catch (UnauthorizedAccessException e)

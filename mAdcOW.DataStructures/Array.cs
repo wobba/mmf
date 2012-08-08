@@ -30,7 +30,7 @@ namespace mAdcOW.DataStructures
         private int _dataSize;
         protected ReaderWriterLockSlim ValueLock = new ReaderWriterLockSlim();
         protected ISerializeDeserialize<T> ValueSerializer;
-        protected readonly IViewManager ViewManager;
+        protected IViewManager ViewManager;
         private int _version;
         #endregion
 
@@ -94,9 +94,9 @@ namespace mAdcOW.DataStructures
         {
             if (ViewManager != null)
             {
-                ViewManager.CleanUp();
+                ViewManager.Dispose();
             }
-            GC.SuppressFinalize(this);
+            ViewManager = null;
         }
 
         #endregion

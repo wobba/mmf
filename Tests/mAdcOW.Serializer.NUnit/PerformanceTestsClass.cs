@@ -159,10 +159,10 @@ namespace mAdcOW.Serializer.Test
     #region Classes
 
     [Serializable]
-    [DataContract]
+    //[DataContract]
     public class TestFixture
     {
-        [DataMember(Order = 1)]
+        //[DataMember(Order = 1)]
         public string Name
         {
             get { return _Name; }
@@ -171,7 +171,7 @@ namespace mAdcOW.Serializer.Test
 
         private string _Name = "Rick";
 
-        [DataMember(Order = 2)]
+        //[DataMember(Order = 2)]
         public DateTime Now
         {
             get { return _Now; }
@@ -180,7 +180,7 @@ namespace mAdcOW.Serializer.Test
 
         private DateTime _Now = DateTime.Now;
 
-        [DataMember(Order = 3)]
+        //[DataMember(Order = 3)]
         public decimal BigNumber
         {
             get { return _BigNumber; }
@@ -189,7 +189,7 @@ namespace mAdcOW.Serializer.Test
 
         private decimal _BigNumber = 1212121.22M;
 
-        [DataMember(Order = 4)]
+        //[DataMember(Order = 4)]
         public Address Address1
         {
             get { return _Address1; }
@@ -199,7 +199,7 @@ namespace mAdcOW.Serializer.Test
         private Address _Address1 = new Address();
 
 
-        [DataMember(Order = 5)]
+        //[DataMember(Order = 5)]
         public List<Address> Addresses
         {
             get { return _Addresses; }
@@ -208,9 +208,11 @@ namespace mAdcOW.Serializer.Test
 
         private List<Address> _Addresses = new List<Address>();
 
-        [DataMember(Order = 6)] public List<string> strings = new List<string>();
+        //[DataMember(Order = 6)]
+        public List<string> strings = new List<string>();
 
-        [DataMember(Order = 7)] public Dictionary<string, int> dictionary = new Dictionary<string, int>();
+        //[DataMember(Order = 7)]
+        public Dictionary<string, int> dictionary = new Dictionary<string, int>();
     }
 
     [Serializable]

@@ -27,7 +27,7 @@ namespace mAdcOW.Serializer
                 {
                     property.SetValue(classInstance, "mAdcOW", null);
                 }
-                else if (property.PropertyType.IsValueType)
+                else if (property.PropertyType.IsValueType && property.PropertyType != typeof(DateTime))
                 {
                     var val = Convert.ChangeType(1, property.PropertyType);
                     property.SetValue(classInstance, val, null);

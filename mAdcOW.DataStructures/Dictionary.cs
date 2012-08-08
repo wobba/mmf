@@ -12,10 +12,10 @@ namespace mAdcOW.DataStructures
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
     /// <typeparam name="TValue"></typeparam>
-    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDisposable
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-        private readonly IDictionaryPersist<TKey, TValue> _persistHandler;
+        private IDictionaryPersist<TKey, TValue> _persistHandler;
         private int _version;
 
         public Dictionary(IDictionaryPersist<TKey, TValue> persistHandler)
@@ -56,8 +56,14 @@ namespace mAdcOW.DataStructures
 
         ~Dictionary()
         {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
             if(_persistHandler != null)
                 _persistHandler.Dispose();
+            _persistHandler = null;
         }
 
         public bool IsStruct { get; set; }
