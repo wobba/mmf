@@ -26,7 +26,6 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private Array<long> _hashCodeLookup;
         private ByteArray _keys;
         private ByteArray _values;
-        private int _firstItem = -1;
         private long _largestSeenKeyPosition = 1; // set start position to 1 to simplify logic
         private long _largestSeenValuePosition;
         private string _path;
@@ -37,7 +36,7 @@ namespace mAdcOW.DataStructures.DictionaryBacking
         private string _keyFile;
         private string _valueFile;
 
-        static BackingUnknownSize() 
+        static BackingUnknownSize()
         {
             _keySerializer = _keyFactory.GetSerializer();
             _valueSerializer = _valueFactory.GetSerializer();
@@ -138,6 +137,7 @@ namespace mAdcOW.DataStructures.DictionaryBacking
             Trace.WriteLine("Initializing dictionary - reading existing values");
             foreach (var kvp in this)
             {
+                //TODO: read in largest seen pos values
                 Count++;
                 if (Count % 100000 == 0)
                 {
@@ -159,33 +159,24 @@ namespace mAdcOW.DataStructures.DictionaryBacking
 
         ~BackingUnknownSize()
         {
-            Dispose(false);
+            Dispose();
         }
 
         public void Dispose()
         {
-            Dispose(true);
-        }
-
-        public void Dispose(bool disposing)
-        {
-            if (disposing)
+            if (_keys != null) _keys.Dispose();
+            if (_values != null) _values.Dispose();
+            if (_hashCodeLookup != null)
             {
-                GC.SuppressFinalize(this);
-                if (_keys != null)
-                    _keys.Dispose();
-                if (_values != null)
-                    _values.Dispose();
-                if (_hashCodeLookup != null)
+                if (!_hashCodeLookup.KeepFile)
                 {
-                    if (!_hashCodeLookup.KeepFile)
-                    {
-                        File.Delete(_controlFile);
-                    }
-                    _hashCodeLookup.Dispose();
+                    File.Delete(_controlFile);
                 }
-
+                _hashCodeLookup.Dispose();
             }
+            _keys = null;
+            _values = null;
+            _hashCodeLookup = null;
         }
 
         private int GetHashCodePosition(TKey key)
@@ -215,6 +206,12 @@ namespace mAdcOW.DataStructures.DictionaryBacking
                     _values.Position = valuePos;
                     int valueLength = _values.ReadVInt();
                     TValue value = _valueSerializer.BytesToObject(_values.MultiRead(valueLength));
+
+                    if (_keys.Position > _largestSeenKeyPosition)
+                        _largestSeenKeyPosition = _keys.Position + 9;
+                    if (_values.Position > _largestSeenValuePosition)
+                        _largestSeenValuePosition = _values.Position;
+
                     yield return new KeyValuePair<TKey, TValue>(key, value);
                     keyPosition = _keys.ReadVLong();
                 }
@@ -294,10 +291,6 @@ namespace mAdcOW.DataStructures.DictionaryBacking
             else
             {
                 _hashCodeLookup[pos] = _largestSeenKeyPosition;
-            }
-            if (_firstItem == -1)
-            {
-                _firstItem = pos;
             }
 
             _keys.Position = _largestSeenKeyPosition;
