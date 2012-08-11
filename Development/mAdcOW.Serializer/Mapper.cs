@@ -12,12 +12,18 @@ using ProtoBuf;
 
 namespace mAdcOW.Serializer
 {
-    //TODO: Nested Types
-    //Non Primitive properties
-    //Clean up saved assemblies..
-    //Use a better naming convention for assemblies
-    //provide an option to store assemblies for ever..
-    //can we create all the types in one assembly
+    internal class SystemTypes
+    {
+        //Can be static overall..
+        internal static HashSet<string> fclDlls = new HashSet<string>
+        {
+            "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+        };  
+
+    }
+
+    //TODO: Nested User Defined Types
     public class Mapper<T>
     {
         private Assembly _assembly;
@@ -32,6 +38,8 @@ namespace mAdcOW.Serializer
 
         private const MethodAttributes GetSetAttr =
             MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.HideBySig;
+
+       
 
         #region Public Properties
 
@@ -112,7 +120,7 @@ namespace mAdcOW.Serializer
             {
                 TypeBuilder typeBuilder = CreateTypeBuilder();
                 var findProps = from propertyInfo in TypeOfActualObject.GetProperties()
-                                    .Where(iPropInfo => iPropInfo.PropertyType.IsPrimitive &&
+                                    .Where(iPropInfo => SystemTypes.fclDlls.Contains(iPropInfo.PropertyType.Assembly.FullName) &&
                                                         iPropInfo.MemberType == MemberTypes.Property &&
                                                         iPropInfo.GetSetMethod() != null)
                                 select propertyInfo;
