@@ -82,7 +82,6 @@ namespace mAdcOW.DataStructures.Test
             }
 
             dict.Dispose();
-            Thread.Sleep(1000);
             dict = new Dictionary<string, int>(_path, 20, true, "test1");
             Assert.AreEqual(2, dict.Count);
             Assert.AreEqual(0, dict["new0"]);
@@ -101,12 +100,53 @@ namespace mAdcOW.DataStructures.Test
             Assert.AreEqual(2, dict["test0"]);
 
             dict.Dispose();
-            Thread.Sleep(1000);
             dict = new Dictionary<string, int>(_path, 20, true, "test1");
             Assert.AreEqual(3, dict.Count);
             Assert.AreEqual(0, dict["new0"]);
             Assert.AreEqual(1, dict["new1"]);
             Assert.AreEqual(2, dict["test0"]);
+        }
+
+        [Test]
+        public void When_adding_more_items_to_an_existing_file_validate_the_content3()
+        {
+            using (var dict = new Dictionary<string, int>(_path, 20, true, "test1"))
+            {
+                dict["new0"] = 0;
+                dict["new1"] = 1;
+
+                foreach (var kvp in dict)
+                {
+                    if (kvp.Key != "new0" && kvp.Key != "new1")
+                        Assert.Fail("Error in reading keys");
+                }
+            }
+            using (var dict = new Dictionary<string, int>(_path, 20, true, "test1"))
+            {
+                Assert.AreEqual(2, dict.Count);
+                Assert.AreEqual(0, dict["new0"]);
+                Assert.AreEqual(1, dict["new1"]);
+                dict["test0"] = 2;
+
+                foreach (var kvp in dict)
+                {
+                    if (kvp.Key != "new0" && kvp.Key != "new1" && kvp.Key != "test0")
+                        Assert.Fail("Error in reading keys");
+                }
+
+                Assert.AreEqual(3, dict.Count);
+                Assert.AreEqual(0, dict["new0"]);
+                Assert.AreEqual(1, dict["new1"]);
+                Assert.AreEqual(2, dict["test0"]);
+            }
+
+            using (var dict = new Dictionary<string, int>(_path, 20, true, "test1"))
+            {
+                Assert.AreEqual(3, dict.Count);
+                Assert.AreEqual(0, dict["new0"]);
+                Assert.AreEqual(1, dict["new1"]);
+                Assert.AreEqual(2, dict["test0"]);
+            }
         }
 
         public void CreateDict()
