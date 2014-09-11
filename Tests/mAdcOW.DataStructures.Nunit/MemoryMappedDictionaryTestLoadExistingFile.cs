@@ -29,6 +29,16 @@ namespace mAdcOW.DataStructures.Test
                 {
                 }
             }
+            foreach (var file in Directory.GetFiles(_path, "mmf*.*"))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception)
+                {
+                }
+            }
         }
 
         [Test]
