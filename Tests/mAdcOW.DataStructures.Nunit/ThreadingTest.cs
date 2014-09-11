@@ -171,30 +171,37 @@ namespace mAdcOW.DataStructures.Test
         [Test]
         public void Dictionary_thread_test()
         {
-            _error = false;
             string path = AppDomain.CurrentDomain.BaseDirectory;
             Dictionary<int, int> testDictionary = new Dictionary<int, int>(path);
-
-            System.Collections.Generic.List<Thread> tList = new System.Collections.Generic.List<Thread>(100);
-            for (int i = 0; i < 20; i++)
+            try
             {
-                Thread t = new Thread(DoWriteTest3);
-                tList.Add(t);
-                t.Start(testDictionary);
-            }
+                _error = false;
 
-            for (int i = 0; i < 20; i++)
-            {
-                Thread t = new Thread(DoReadTest3);
-                tList.Add(t);
-                t.Start(testDictionary);
-            }
+                System.Collections.Generic.List<Thread> tList = new System.Collections.Generic.List<Thread>(100);
+                for (int i = 0; i < 20; i++)
+                {
+                    Thread t = new Thread(DoWriteTest3);
+                    tList.Add(t);
+                    t.Start(testDictionary);
+                }
 
-            foreach (Thread t in tList)
-            {
-                t.Join();
+                for (int i = 0; i < 20; i++)
+                {
+                    Thread t = new Thread(DoReadTest3);
+                    tList.Add(t);
+                    t.Start(testDictionary);
+                }
+
+                foreach (Thread t in tList)
+                {
+                    t.Join();
+                }
+                Assert.IsFalse(_error);
             }
-            Assert.IsFalse(_error);
+            finally
+            {
+                testDictionary.Dispose();
+            }
         }
 
         private static void DoWriteTest3(object dictionary)
@@ -208,7 +215,7 @@ namespace mAdcOW.DataStructures.Test
                     dictionary1[random.Next(1000)] = i;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 _error = true;
                 throw;
@@ -227,7 +234,7 @@ namespace mAdcOW.DataStructures.Test
                     dictionary1.TryGetValue(random.Next(1000), out x);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 _error = true;
                 throw;
